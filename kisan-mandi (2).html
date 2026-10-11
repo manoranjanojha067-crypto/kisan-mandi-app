@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kisan Mandi & Crop Helper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700;800&family=Noto+Sans+Bengali:wght@400;600;700;800&family=Noto+Sans+Tamil:wght@400;600;700;800&family=Noto+Sans+Telugu:wght@400;600;700;800&family=Noto+Sans+Kannada:wght@400;600;700;800&family=Noto+Sans+Malayalam:wght@400;600;700;800&family=Noto+Sans+Gujarati:wght@400;600;700;800&family=Noto+Sans+Gurmukhi:wght@400;600;700;800&family=Noto+Sans+Oriya:wght@400;600;700;800&family=Noto+Nastaliq+Urdu:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --field-deep:#1F3D2B;
+  --field-mid:#2C4F32;
+  --field-soft:#3E6B44;
+  --marigold:#E8890C;
+  --marigold-dark:#C46F02;
+  --turmeric:#F2B705;
+  --grain:#F3F5E9;
+  --grain-card:#FFFFFF;
+  --soil:#4A3728;
+  --ink:#1B2118;
+  --line:#DDE3CE;
+  --danger:#B3261E;
+  --danger-bg:#FBEAE8;
+  --ok:#2E7D32;
+  --ok-bg:#E9F5E9;
+  --radius:14px;
+  --font: 'Noto Sans','Noto Sans Devanagari','Noto Sans Bengali','Noto Sans Tamil','Noto Sans Telugu','Noto Sans Kannada','Noto Sans Malayalam','Noto Sans Gujarati','Noto Sans Gurmukhi','Noto Sans Oriya','Noto Nastaliq Urdu',sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --grain:#151A12; --grain-card:#1E251A; --ink:#EDEFE6; --soil:#CBB89E;
+    --line:#33402C; --field-deep:#274A34; --field-mid:#33623F;
+    --danger-bg:#3A1F1D; --ok-bg:#183824;
+  }
+}
+:root[data-theme="dark"]{
+  --grain:#151A12; --grain-card:#1E251A; --ink:#EDEFE6; --soil:#CBB89E;
+  --line:#33402C; --field-deep:#274A34; --field-mid:#33623F;
+  --danger-bg:#3A1F1D; --ok-bg:#183824;
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+body{
+  margin:0; font-family:var(--font); background:var(--grain); color:var(--ink);
+  height:100%; overscroll-behavior-y:none; -webkit-tap-highlight-color:transparent;
+}
+[dir="rtl"] body{direction:rtl;}
+button, input, select, textarea{font-family:inherit;}
+button{cursor:pointer;}
+.app{max-width:520px; margin:0 auto; min-height:100%; display:flex; flex-direction:column; background:var(--grain);}
+.topbar{
+  position:sticky; top:0; z-index:20; background:var(--field-deep); color:#fff;
+  padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;
+}
+.topbar-row1{display:flex; align-items:center; gap:10px;}
+.brand{display:flex; align-items:center; gap:8px; flex:1; min-width:0;}
+.brand-emoji{font-size:22px;}
+.brand-text{font-weight:800; font-size:16px; line-height:1.15;}
+.brand-sub{font-size:10.5px; opacity:.75; font-weight:600;}
+.pillbtn{
+  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.3); color:#fff;
+  border-radius:20px; padding:6px 10px; font-size:12px; font-weight:700; white-space:nowrap;
+  display:flex; align-items:center; gap:4px;
+}
+.topbar-row2{display:flex; gap:8px; margin-top:8px;}
+.searchbar{
+  flex:1; display:flex; align-items:center; gap:6px; background:#fff; border-radius:24px; padding:8px 12px;
+}
+.searchbar input{border:none; outline:none; flex:1; font-size:14px; color:var(--ink); background:transparent; min-width:0;}
+.searchbar button{border:none; background:transparent; font-size:16px; padding:2px; color:var(--field-deep);}
+.screen{padding:14px 14px 90px;}
+.section-title{font-size:19px; font-weight:800; margin:2px 0 10px; color:var(--ink);}
+.subtle{color:var(--soil); font-size:13px; line-height:1.5;}
+.disclaimer{
+  background:var(--turmeric); color:#3A2A00; border-radius:10px; padding:9px 12px; font-size:12.5px;
+  font-weight:600; margin-bottom:14px; line-height:1.4; border-left:4px solid var(--marigold-dark);
+}
+.disclaimer.soft{background:var(--grain-card); color:var(--soil); border:1px solid var(--line); border-left:4px solid var(--field-soft); font-weight:500;}
+.grid-cards{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.feature-card{
+  background:var(--grain-card); border:1px solid var(--line); border-radius:var(--radius); padding:14px 12px;
+  display:flex; flex-direction:column; gap:6px; text-align:left; border-left:5px solid var(--accent,var(--field-soft));
+  min-height:96px; justify-content:center;
+}
+.feature-card .ico{font-size:24px;}
+.feature-card .lbl{font-weight:700; font-size:13.5px; line-height:1.25; color:var(--ink);}
+.card{
+  background:var(--grain-card); border:1px solid var(--line); border-radius:var(--radius); padding:14px;
+  margin-bottom:12px;
+}
+.chip-row{display:flex; flex-wrap:wrap; gap:8px; margin:10px 0 16px;}
+.chip{
+  background:var(--grain-card); border:1px solid var(--line); border-radius:20px; padding:8px 14px; font-size:13.5px;
+  font-weight:600; color:var(--ink);
+}
+.chip.active{background:var(--field-deep); color:#fff; border-color:var(--field-deep);}
+.mic-btn{
+  border:none; background:var(--marigold); color:#fff; border-radius:50%; width:38px; height:38px; font-size:16px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.mic-btn.listening{background:var(--danger); animation:pulse 1s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(179,38,30,.5);}70%{box-shadow:0 0 0 10px rgba(179,38,30,0);}100%{box-shadow:0 0 0 0 rgba(179,38,30,0);}}
+.price-card{
+  background:var(--grain-card); border:1px solid var(--line); border-left:5px solid var(--marigold); border-radius:var(--radius);
+  padding:13px 14px; margin-bottom:10px;
+}
+.price-card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.mandi-name{font-weight:800; font-size:14.5px;}
+.mandi-loc{font-size:12px; color:var(--soil); margin-top:2px;}
+.demo-badge{
+  background:var(--danger-bg); color:var(--danger); font-size:9.5px; font-weight:800; padding:2px 7px;
+  border-radius:5px; white-space:nowrap; letter-spacing:.2px;
+}
+.price-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:10px;}
+.price-box{background:var(--grain); border-radius:8px; padding:7px 6px; text-align:center;}
+.price-box .lbl{font-size:10px; color:var(--soil); font-weight:700;}
+.price-box .val{font-size:14.5px; font-weight:800; color:var(--field-deep); margin-top:2px;}
+.price-meta{display:flex; justify-content:space-between; margin-top:9px; font-size:11.5px; color:var(--soil);}
+.btnrow{display:flex; gap:8px; margin-top:10px;}
+.btn{
+  border:none; border-radius:10px; padding:11px 14px; font-weight:700; font-size:13.5px; flex:1;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.btn-primary{background:var(--marigold); color:#fff;}
+.btn-outline{background:transparent; border:1.5px solid var(--field-deep); color:var(--field-deep);}
+.btn-ghost{background:var(--grain); color:var(--ink); border:1px solid var(--line);}
+.btn:disabled{opacity:.55;}
+.filters{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:12px;}
+.filters select{
+  border:1px solid var(--line); background:var(--grain-card); border-radius:9px; padding:8px 10px; font-size:12.5px;
+  color:var(--ink); font-weight:600; flex-shrink:0;
+}
+.sortrow{display:flex; gap:8px; margin-bottom:10px;}
+.sortbtn{flex:1; padding:8px; border-radius:9px; border:1px solid var(--line); background:var(--grain-card); font-size:12px; font-weight:700; color:var(--soil);}
+.sortbtn.active{background:var(--field-deep); color:#fff; border-color:var(--field-deep);}
+.bottomnav{
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:520px;
+  background:var(--grain-card); border-top:1px solid var(--line); display:flex; z-index:30;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));
+}
+.navbtn{
+  flex:1; background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:2px;
+  padding:6px 2px; color:var(--soil); font-size:10.5px; font-weight:700; border-radius:10px;
+}
+.navbtn .ico{font-size:19px;}
+.navbtn.active{color:var(--field-deep);}
+.navbtn.active .ico{transform:scale(1.05);}
+.backrow{display:flex; align-items:center; gap:8px; margin-bottom:12px;}
+.backbtn{border:none; background:var(--grain-card); border:1px solid var(--line); border-radius:9px; width:34px; height:34px; font-size:15px; flex-shrink:0;}
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:50; display:flex; align-items:flex-end; justify-content:center;
+}
+.modal-sheet{
+  background:var(--grain-card); width:100%; max-width:520px; border-radius:18px 18px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px));
+  max-height:82vh; overflow-y:auto;
+}
+.modal-title{font-weight:800; font-size:17px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;}
+.closex{border:none; background:var(--grain); border-radius:50%; width:30px; height:30px; font-size:14px;}
+.lang-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.lang-opt{
+  border:1.5px solid var(--line); background:var(--grain); border-radius:10px; padding:11px 12px; text-align:left;
+  font-weight:700; font-size:13.5px; display:flex; justify-content:space-between; align-items:center;
+}
+.lang-opt.active{border-color:var(--field-deep); background:var(--ok-bg);}
+.lang-opt small{display:block; font-weight:500; font-size:11px; color:var(--soil); margin-top:1px;}
+input[type=text], textarea, select.field{
+  width:100%; border:1px solid var(--line); background:var(--grain); border-radius:10px; padding:10px 12px; font-size:14px; color:var(--ink);
+}
+textarea{resize:vertical; min-height:70px;}
+label.flabel{font-size:12.5px; font-weight:700; color:var(--soil); display:block; margin:10px 0 5px;}
+.crop-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0;}
+.crop-tile{
+  background:var(--grain-card); border:1px solid var(--line); border-radius:12px; padding:10px 6px; text-align:center;
+  font-size:12px; font-weight:700;
+}
+.crop-tile .ico{font-size:22px; display:block; margin-bottom:3px;}
+.emptystate{text-align:center; padding:36px 16px; color:var(--soil);}
+.emptystate .ico{font-size:36px; display:block; margin-bottom:8px;}
+.fab-mic{
+  position:fixed; bottom:calc(72px + env(safe-area-inset-bottom,0px)); right:calc(50% - 250px + 16px); z-index:29;
+  background:var(--field-deep); color:#fff; border:none; border-radius:50%; width:52px; height:52px; font-size:21px;
+  box-shadow:0 4px 14px rgba(0,0,0,.25);
+}
+@media (max-width:552px){.fab-mic{right:16px;}}
+.ai-box{background:var(--ok-bg); border:1px solid #bcd8bc; border-radius:10px; padding:12px; font-size:13.5px; line-height:1.55; white-space:pre-wrap;}
+.ai-box.thinking{color:var(--soil); font-style:italic;}
+.small-link{color:var(--field-deep); font-weight:700; font-size:12.5px; text-decoration:underline;}
+table.compare-table{width:100%; border-collapse:collapse; font-size:12px;}
+table.compare-table th, table.compare-table td{border:1px solid var(--line); padding:7px 6px; text-align:center;}
+table.compare-table th{background:var(--field-deep); color:#fff; font-size:11px;}
+.checkitem{display:flex; align-items:center; gap:8px; padding:9px 4px; border-bottom:1px solid var(--line); font-size:13.5px; font-weight:600;}
+.res-item{border:1px solid var(--line); border-radius:10px; padding:11px; margin-bottom:9px; background:var(--grain-card);}
+.res-item a{color:var(--field-deep); font-weight:700; font-size:13px;}
+.res-item p{margin:4px 0 0; font-size:12px; color:var(--soil);}
+.confbar{height:6px; border-radius:4px; background:var(--line); overflow:hidden; margin-top:4px;}
+.confbar span{display:block; height:100%; background:var(--ok);}
+.badge-row{display:flex; gap:6px; flex-wrap:wrap; margin-top:6px;}
+.tag{background:var(--grain); border:1px solid var(--line); border-radius:7px; padding:3px 8px; font-size:11px; font-weight:700; color:var(--soil);}
+.upload-box{
+  border:2px dashed var(--line); border-radius:12px; padding:22px 14px; text-align:center; color:var(--soil); font-size:13px; font-weight:600;
+}
+.imgpreview{width:100%; border-radius:12px; margin-bottom:10px; max-height:260px; object-fit:cover;}
+.favstar{border:none; background:none; font-size:18px;}
+::-webkit-scrollbar{display:none;}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============== I18N ============== */
+var EN = {
+  appName:"Kisan Mandi", appNameFull:"Kisan Mandi & Crop Helper", tagline:"Crop prices & farming help",
+  home:"Home", search:"Search", prices:"Prices", nearby:"Nearby", more:"More",
+  language:"Language", location:"Location", selectLanguage:"Select language", selectLocation:"Select your location",
+  searchPlaceholder:"Search a crop (e.g. Rice, Tomato)", speak:"Speak",
+  cardCheckPrice:"Check Mandi Price", cardIdentify:"Identify Crop from Photo", cardSearch:"Search Crop",
+  cardNearby:"Find Nearby Mandi", cardCompare:"Compare Mandi Prices", cardDisease:"Crop Disease Helper",
+  cardTips:"Farming Tips", cardVoice:"Voice Assistant", cardGov:"Government Resources",
+  demoData:"DEMO DATA", demoDataFull:"DEMO DATA — NOT LIVE MARKET PRICE",
+  priceDisclaimer:"Prices shown are demo data for this app preview and are not live mandi prices. Always confirm the final price with the mandi or trader before selling.",
+  minPrice:"Min", maxPrice:"Max", modalPrice:"Modal", unit:"Unit", updated:"Updated", source:"Source",
+  sortHighest:"Highest price", sortNearest:"Nearest", filterState:"State", filterDistrict:"District", filterCrop:"Crop",
+  all:"All", noResults:"No results found.", locationDenied:"We could not get your location.",
+  selectManually:"Select your location manually", state:"State", district:"District", block:"Block / City",
+  useMyLocation:"Use my current location", distance:"Distance", viewOnMap:"View on map",
+  quantity:"Quantity (quintal)", estimatedValue:"Estimated Value", estimatedValueNote:"This is an estimate only. Transport, commission, grading and quality checks can change the final amount actually received.",
+  whereSell:"Where Should I Sell?", compareTitle:"Compare Mandi Prices", addToCompare:"Add to compare",
+  removeFromCompare:"Remove", diseaseHelperTitle:"Crop Disease Helper", uploadPhoto:"Upload photo",
+  takePhoto:"Take / upload photo", describeSymptoms:"Describe what you see on the plant",
+  selectCrop:"Select crop", getAdvice:"Get advice", expertNote:"For serious crop damage, please confirm the diagnosis with a qualified agriculture expert or your nearest Krishi Vigyan Kendra.",
+  photoIdTitle:"Identify My Crop", possibleCrop:"Possible crop", possibleIssue:"Possible issue", confidence:"Confidence",
+  unclearPhoto:"The photo is not clear enough. Please take another photo in good light.",
+  farmingTipsTitle:"Farming Tips", govResourcesTitle:"Government Agriculture Resources",
+  weatherTitle:"Weather", weatherUnavailable:"Live weather data is not connected in this app yet.",
+  dashboardTitle:"My Dashboard", favorites:"Favourite crops", recentSearches:"Recent searches",
+  savedComparisons:"Saved comparisons", noAccountNeeded:"No account needed — this is saved only on this device.",
+  netRequired:"Internet connection required for live market prices.", back:"Back", close:"Close", cancel:"Cancel",
+  listening:"Listening… speak now", textAlt:"You can also type instead of speaking.",
+  low:"Low", medium:"Medium", high:"High", today:"Today",
+  errorNoPrice:"Sorry, market data for this crop is not available.",
+  errorLocation:"We could not determine your location. Please select your district manually.",
+  askAI:"Ask", aiThinking:"Thinking…", aiUnavailable:"AI help isn't available in this view right now. Please try again later, or consult your local Krishi Vigyan Kendra.",
+  aiConsentNote:"This uses your Claude account to give an answer — nothing is shared without your permission.",
+  askAnything:"Ask me anything about crops, prices or farming", voiceAssistant:"Voice Assistant",
+  typeInstead:"Type your question", send:"Send", localNames:"Local names", lastUpdated:"Last updated",
+  yourAnswer:"Answer", viewDetails:"View details", noFavorites:"No favourite crops yet. Tap the star on a crop to save it.",
+  noRecent:"No recent searches yet.", clearAll:"Clear", resourcesNote:"These are well-known official Government of India portals. Always check the site itself for the latest details.",
+  govVisit:"Visit site", weatherNote:"Connect a weather data source to show live forecasts here.",
+  compareEmpty:"Select two or more mandis below to compare their prices.", selectMandis:"Select mandis to compare",
+  category:"Category", perQuintal:"per quintal", photoTip:"Good light and a close, in-focus photo of the leaf or plant works best.",
+  analyzing:"Analysing photo…", askVoiceQ:"Ask a question by voice or text", stop:"Stop",
+  address:"Address", matchingCrops:"Matching crops", noMatches:"No matching crop found. Try another name.",
+  dataSourceLabel:"Data source", statusDemo:"DEMO — not live", statusLive:"LIVE",
+  liveTempUnavailable:"Live government mandi data is temporarily unavailable.",
+  permissionDenied:"Location permission was denied.", micNotSupported:"Voice input isn't supported in this browser. Please type instead.",
+  unableIdentifyClear:"Unable to identify confidently. Please upload a clearer image.",
+  offlineNotice:"You appear to be offline. Live features like AI photo ID, disease advice and voice answers need an internet connection — but you can still browse crops and demo prices.",
+  sortByPrice:"Price", sortByDistance:"Distance", myStateOnly:"My state only", allStatesOpt:"All states",
+  tapToOpen:"Tap a crop to open its page", checking:"Checking…", tryAgain:"Try again", cropNotFound:"Crop not found. Choose one from the list.",
+  rateLimited:"Too many requests right now. Please wait a moment and try again.", consentNeeded:"Please allow AI access when prompted to use this feature.",
+  imageIssue:"There was a problem with that photo. Please try a different one."
+};
+var HI = {
+  appName:"किसान मंडी", appNameFull:"किसान मंडी और फसल सहायक", tagline:"फसल के दाम और खेती में मदद",
+  home:"होम", search:"खोजें", prices:"दाम", nearby:"नज़दीकी", more:"और",
+  language:"भाषा", location:"स्थान", selectLanguage:"भाषा चुनें", selectLocation:"अपना स्थान चुनें",
+  searchPlaceholder:"फसल खोजें (जैसे चावल, टमाटर)", speak:"बोलें",
+  cardCheckPrice:"मंडी भाव देखें", cardIdentify:"फोटो से फसल पहचानें", cardSearch:"फसल खोजें",
+  cardNearby:"नज़दीकी मंडी खोजें", cardCompare:"मंडी भाव तुलना करें", cardDisease:"फसल रोग सहायक",
+  cardTips:"खेती के टिप्स", cardVoice:"आवाज़ सहायक", cardGov:"सरकारी संसाधन",
+  demoData:"डेमो डेटा", demoDataFull:"डेमो डेटा — असली मंडी भाव नहीं",
+  priceDisclaimer:"दिखाए गए भाव इस ऐप के नमूने के लिए डेमो डेटा हैं, असली मंडी भाव नहीं। बेचने से पहले हमेशा मंडी या व्यापारी से अंतिम भाव की पुष्टि करें।",
+  minPrice:"न्यूनतम", maxPrice:"अधिकतम", modalPrice:"सामान्य", unit:"इकाई", updated:"अपडेट किया गया", source:"स्रोत",
+  sortHighest:"सबसे ऊँचा भाव", sortNearest:"सबसे नज़दीक", filterState:"राज्य", filterDistrict:"ज़िला", filterCrop:"फसल",
+  all:"सभी", noResults:"कोई परिणाम नहीं मिला।", locationDenied:"हम आपका स्थान नहीं जान पाए।",
+  selectManually:"अपना स्थान खुद चुनें", state:"राज्य", district:"ज़िला", block:"ब्लॉक / शहर",
+  useMyLocation:"मेरा वर्तमान स्थान उपयोग करें", distance:"दूरी", viewOnMap:"मानचित्र पर देखें",
+  quantity:"मात्रा (क्विंटल)", estimatedValue:"अनुमानित मूल्य", estimatedValueNote:"यह केवल एक अनुमान है। परिवहन, कमीशन, ग्रेडिंग और गुणवत्ता जांच से अंतिम राशि बदल सकती है।",
+  whereSell:"कहाँ बेचें?", compareTitle:"मंडी भाव तुलना", addToCompare:"तुलना में जोड़ें",
+  removeFromCompare:"हटाएं", diseaseHelperTitle:"फसल रोग सहायक", uploadPhoto:"फोटो अपलोड करें",
+  takePhoto:"फोटो लें / अपलोड करें", describeSymptoms:"पौधे पर जो दिख रहा है उसे बताएं",
+  selectCrop:"फसल चुनें", getAdvice:"सलाह लें", expertNote:"गंभीर फसल नुकसान के लिए कृपया किसी योग्य कृषि विशेषज्ञ या नज़दीकी कृषि विज्ञान केंद्र से पुष्टि करें।",
+  photoIdTitle:"मेरी फसल पहचानें", possibleCrop:"संभावित फसल", possibleIssue:"संभावित समस्या", confidence:"विश्वास स्तर",
+  unclearPhoto:"फोटो स्पष्ट नहीं है। कृपया अच्छी रोशनी में दूसरी फोटो लें।",
+  farmingTipsTitle:"खेती के टिप्स", govResourcesTitle:"सरकारी कृषि संसाधन",
+  weatherTitle:"मौसम", weatherUnavailable:"इस ऐप में अभी लाइव मौसम डेटा जुड़ा नहीं है।",
+  dashboardTitle:"मेरा डैशबोर्ड", favorites:"पसंदीदा फसलें", recentSearches:"हाल की खोजें",
+  savedComparisons:"सहेजी गई तुलनाएं", noAccountNeeded:"खाता ज़रूरी नहीं — यह केवल इस डिवाइस पर सहेजा गया है।",
+  netRequired:"लाइव मंडी भाव के लिए इंटरनेट कनेक्शन चाहिए।", back:"वापस", close:"बंद करें", cancel:"रद्द करें",
+  listening:"सुन रहे हैं… अब बोलें", textAlt:"आप बोलने की जगह टाइप भी कर सकते हैं।",
+  low:"कम", medium:"मध्यम", high:"उच्च", today:"आज",
+  errorNoPrice:"क्षमा करें, इस फसल का बाज़ार डेटा उपलब्ध नहीं है।",
+  errorLocation:"हम आपका स्थान तय नहीं कर पाए। कृपया अपना ज़िला खुद चुनें।",
+  askAI:"पूछें", aiThinking:"सोच रहे हैं…", aiUnavailable:"अभी AI सहायता उपलब्ध नहीं है। कृपया बाद में कोशिश करें, या नज़दीकी कृषि विज्ञान केंद्र से संपर्क करें।",
+  aiConsentNote:"यह जवाब देने के लिए आपके Claude खाते का उपयोग करता है — आपकी अनुमति के बिना कुछ भी साझा नहीं किया जाता।",
+  askAnything:"फसल, भाव या खेती के बारे में कुछ भी पूछें", voiceAssistant:"आवाज़ सहायक",
+  typeInstead:"अपना सवाल टाइप करें", send:"भेजें", localNames:"स्थानीय नाम", lastUpdated:"आखिरी अपडेट",
+  yourAnswer:"जवाब", viewDetails:"विवरण देखें", noFavorites:"अभी कोई पसंदीदा फसल नहीं। सहेजने के लिए फसल पर तारा दबाएं।",
+  noRecent:"अभी कोई हाल की खोज नहीं।", clearAll:"साफ़ करें", resourcesNote:"ये भारत सरकार के जाने-माने आधिकारिक पोर्टल हैं। हमेशा नवीनतम जानकारी के लिए साइट खुद देखें।",
+  govVisit:"साइट देखें", weatherNote:"यहाँ लाइव पूर्वानुमान दिखाने के लिए मौसम डेटा स्रोत जोड़ें।",
+  compareEmpty:"भाव तुलना करने के लिए नीचे दो या अधिक मंडियां चुनें।", selectMandis:"तुलना के लिए मंडियां चुनें",
+  category:"श्रेणी", perQuintal:"प्रति क्विंटल", photoTip:"अच्छी रोशनी में पत्ती या पौधे की नज़दीकी, साफ फोटो सबसे अच्छा काम करती है।",
+  analyzing:"फोटो जांची जा रही है…", askVoiceQ:"आवाज़ या टाइप करके सवाल पूछें", stop:"रोकें",
+  address:"पता", matchingCrops:"मिलती-जुलती फसलें", noMatches:"कोई मिलती फसल नहीं मिली। दूसरा नाम आज़माएं।",
+  dataSourceLabel:"डेटा स्रोत", statusDemo:"डेमो — लाइव नहीं", statusLive:"लाइव",
+  liveTempUnavailable:"सरकारी लाइव मंडी डेटा अभी उपलब्ध नहीं है।",
+  permissionDenied:"स्थान की अनुमति अस्वीकार कर दी गई।", micNotSupported:"इस ब्राउज़र में आवाज़ इनपुट समर्थित नहीं है। कृपया टाइप करें।",
+  unableIdentifyClear:"पूरे विश्वास से पहचान नहीं हो सकी। कृपया एक साफ फोटो अपलोड करें।",
+  offlineNotice:"आप ऑफ़लाइन लग रहे हैं। AI फोटो पहचान, रोग सलाह और आवाज़ जवाब जैसी लाइव सुविधाओं के लिए इंटरनेट चाहिए — लेकिन आप अब भी फसलें और डेमो भाव देख सकते हैं।",
+  sortByPrice:"भाव", sortByDistance:"दूरी", myStateOnly:"केवल मेरा राज्य", allStatesOpt:"सभी राज्य",
+  tapToOpen:"फसल खोलने के लिए टैप करें", checking:"जांच रहे हैं…", tryAgain:"फिर कोशिश करें", cropNotFound:"फसल नहीं मिली। सूची में से चुनें।",
+  rateLimited:"अभी बहुत अनुरोध आ रहे हैं। कृपया थोड़ी देर बाद कोशिश करें।", consentNeeded:"कृपया यह सुविधा उपयोग करने के लिए पूछे जाने पर AI एक्सेस की अनुमति दें।",
+  imageIssue:"उस फोटो में कोई समस्या थी। कृपया दूसरी फोटो आज़माएं।"
+};
+// Core-string translations for remaining languages (nav, headers, key labels).
+// Anything not listed falls back to English so the app stays fully usable
+// while these languages await full translation.
+var BN = {appName:"কিষাণ মান্ডি", home:"হোম", search:"খুঁজুন", prices:"দাম", nearby:"কাছাকাছি", more:"আরও",
+  language:"ভাষা", location:"অবস্থান", selectLanguage:"ভাষা নির্বাচন করুন", searchPlaceholder:"ফসল খুঁজুন (যেমন ধান, টমেটো)",
+  cardCheckPrice:"মান্ডি দাম দেখুন", cardIdentify:"ছবি থেকে ফসল চিনুন", cardSearch:"ফসল খুঁজুন", cardNearby:"কাছের মান্ডি খুঁজুন",
+  cardCompare:"মান্ডি দাম তুলনা করুন", cardDisease:"ফসল রোগ সহায়ক", cardTips:"চাষের পরামর্শ", cardVoice:"ভয়েস সহায়ক",
+  cardGov:"সরকারি সম্পদ", demoData:"ডেমো ডেটা", priceDisclaimer:"দেখানো দাম ডেমো ডেটা, আসল মান্ডি দাম নয়। বিক্রির আগে মান্ডি বা ব্যবসায়ীর সাথে চূড়ান্ত দাম নিশ্চিত করুন।",
+  minPrice:"সর্বনিম্ন", maxPrice:"সর্বোচ্চ", modalPrice:"সাধারণ", unit:"একক", updated:"হালনাগাদ",
+  farmingTipsTitle:"চাষের পরামর্শ", govResourcesTitle:"সরকারি কৃষি সম্পদ", weatherTitle:"আবহাওয়া",
+  dashboardTitle:"আমার ড্যাশবোর্ড", back:"পেছনে", close:"বন্ধ করুন", all:"সব", state:"রাজ্য", district:"জেলা"};
+var TE = {appName:"కిసాన్ మండి", home:"హోమ్", search:"వెతకండి", prices:"ధరలు", nearby:"సమీపంలో", more:"మరిన్ని",
+  language:"భాష", location:"స్థానం", selectLanguage:"భాష ఎంచుకోండి", searchPlaceholder:"పంట వెతకండి (ఉదా. వరి, టమాటా)",
+  cardCheckPrice:"మండి ధర చూడండి", cardIdentify:"ఫోటో నుండి పంటను గుర్తించండి", cardSearch:"పంట వెతకండి", cardNearby:"సమీప మండి కనుగొనండి",
+  cardCompare:"మండి ధరలను పోల్చండి", cardDisease:"పంట వ్యాధి సహాయకుడు", cardTips:"వ్యవసాయ చిట్కాలు", cardVoice:"వాయిస్ సహాయకుడు",
+  cardGov:"ప్రభుత్వ వనరులు", demoData:"డెమో డేటా", priceDisclaimer:"చూపిన ధరలు డెమో డేటా, ప్రత్యక్ష మండి ధరలు కావు. అమ్మే ముందు మండి లేదా వ్యాపారితో ధరను నిర్ధారించుకోండి.",
+  minPrice:"కనిష్ట", maxPrice:"గరిష్ట", modalPrice:"సాధారణ", unit:"యూనిట్", updated:"నవీకరించబడింది",
+  farmingTipsTitle:"వ్యవసాయ చిట్కాలు", govResourcesTitle:"ప్రభుత్వ వ్యవసాయ వనరులు", weatherTitle:"వాతావరణం",
+  dashboardTitle:"నా డాష్‌బోర్డ్", back:"వెనుకకు", close:"మూసివేయి", all:"అన్నీ", state:"రాష్ట్రం", district:"జిల్లా"};
+var TA = {appName:"கிசான் மண்டி", home:"முகப்பு", search:"தேடு", prices:"விலைகள்", nearby:"அருகில்", more:"மேலும்",
+  language:"மொழி", location:"இடம்", selectLanguage:"மொழியை தேர்ந்தெடுக்கவும்", searchPlaceholder:"பயிரைத் தேடுங்கள் (எ.கா. நெல், தக்காளி)",
+  cardCheckPrice:"மண்டி விலையைப் பார்க்கவும்", cardIdentify:"புகைப்படத்தில் இருந்து பயிரை அடையாளம் காணவும்", cardSearch:"பயிரைத் தேடு",
+  cardNearby:"அருகிலுள்ள மண்டியைக் கண்டறியவும்", cardCompare:"மண்டி விலைகளை ஒப்பிடவும்", cardDisease:"பயிர் நோய் உதவியாளர்",
+  cardTips:"விவசாய குறிப்புகள்", cardVoice:"குரல் உதவியாளர்", cardGov:"அரசு வளங்கள்", demoData:"டெமோ தரவு",
+  priceDisclaimer:"காட்டப்படும் விலைகள் டெமோ தரவு, நேரடி மண்டி விலைகள் அல்ல. விற்பதற்கு முன் மண்டி அல்லது வர்த்தகரிடம் இறுதி விலையை உறுதிசெய்யவும்.",
+  minPrice:"குறைந்தபட்சம்", maxPrice:"அதிகபட்சம்", modalPrice:"பொதுவான", unit:"அலகு", updated:"புதுப்பிக்கப்பட்டது",
+  farmingTipsTitle:"விவசாய குறிப்புகள்", govResourcesTitle:"அரசு வேளாண் வளங்கள்", weatherTitle:"வானிலை",
+  dashboardTitle:"எனது டாஷ்போர்டு", back:"பின்", close:"மூடு", all:"அனைத்தும்", state:"மாநிலம்", district:"மாவட்டம்"};
+var KN = {appName:"ಕಿಸಾನ್ ಮಂಡಿ", home:"ಮುಖಪುಟ", search:"ಹುಡುಕಿ", prices:"ಬೆಲೆಗಳು", nearby:"ಹತ್ತಿರದ", more:"ಇನ್ನಷ್ಟು",
+  language:"ಭಾಷೆ", location:"ಸ್ಥಳ", selectLanguage:"ಭಾಷೆ ಆಯ್ಕೆಮಾಡಿ", searchPlaceholder:"ಬೆಳೆ ಹುಡುಕಿ (ಉದಾ. ಭತ್ತ, ಟೊಮ್ಯಾಟೊ)",
+  cardCheckPrice:"ಮಂಡಿ ಬೆಲೆ ನೋಡಿ", cardIdentify:"ಫೋಟೋದಿಂದ ಬೆಳೆ ಗುರುತಿಸಿ", cardSearch:"ಬೆಳೆ ಹುಡುಕಿ", cardNearby:"ಹತ್ತಿರದ ಮಂಡಿ ಹುಡುಕಿ",
+  cardCompare:"ಮಂಡಿ ಬೆಲೆ ಹೋಲಿಸಿ", cardDisease:"ಬೆಳೆ ರೋಗ ಸಹಾಯಕ", cardTips:"ಕೃಷಿ ಸಲಹೆಗಳು", cardVoice:"ಧ್ವನಿ ಸಹಾಯಕ",
+  cardGov:"ಸರ್ಕಾರಿ ಸಂಪನ್ಮೂಲಗಳು", demoData:"ಡೆಮೊ ಡೇಟಾ", priceDisclaimer:"ತೋರಿಸಿರುವ ಬೆಲೆಗಳು ಡೆಮೊ ಡೇಟಾ, ನೇರ ಮಂಡಿ ಬೆಲೆಗಳಲ್ಲ. ಮಾರಾಟ ಮಾಡುವ ಮೊದಲು ಮಂಡಿ ಅಥವಾ ವ್ಯಾಪಾರಿಯೊಂದಿಗೆ ಅಂತಿಮ ಬೆಲೆ ಖಚಿತಪಡಿಸಿಕೊಳ್ಳಿ.",
+  minPrice:"ಕನಿಷ್ಠ", maxPrice:"ಗರಿಷ್ಠ", modalPrice:"ಸಾಮಾನ್ಯ", unit:"ಘಟಕ", updated:"ನವೀಕರಿಸಲಾಗಿದೆ",
+  farmingTipsTitle:"ಕೃಷಿ ಸಲಹೆಗಳು", govResourcesTitle:"ಸರ್ಕಾರಿ ಕೃಷಿ ಸಂಪನ್ಮೂಲಗಳು", weatherTitle:"ಹವಾಮಾನ",
+  dashboardTitle:"ನನ್ನ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್", back:"ಹಿಂದೆ", close:"ಮುಚ್ಚಿ", all:"ಎಲ್ಲಾ", state:"ರಾಜ್ಯ", district:"ಜಿಲ್ಲೆ"};
+var ML = {appName:"കിസാൻ മണ്ടി", home:"ഹോം", search:"തിരയുക", prices:"വിലകൾ", nearby:"സമീപം", more:"കൂടുതൽ",
+  language:"ഭാഷ", location:"സ്ഥലം", selectLanguage:"ഭാഷ തിരഞ്ഞെടുക്കുക", searchPlaceholder:"വിള തിരയുക (ഉദാ. നെല്ല്, തക്കാളി)",
+  cardCheckPrice:"മണ്ടി വില കാണുക", cardIdentify:"ഫോട്ടോയിൽ നിന്ന് വിള തിരിച്ചറിയുക", cardSearch:"വിള തിരയുക",
+  cardNearby:"സമീപത്തെ മണ്ടി കണ്ടെത്തുക", cardCompare:"മണ്ടി വിലകൾ താരതമ്യം ചെയ്യുക", cardDisease:"വിള രോഗ സഹായി",
+  cardTips:"കൃഷി നുറുങ്ങുകൾ", cardVoice:"വോയ്സ് അസിസ്റ്റന്റ്", cardGov:"സർക്കാർ വിഭവങ്ങൾ", demoData:"ഡെമോ ഡാറ്റ",
+  priceDisclaimer:"കാണിച്ചിരിക്കുന്ന വിലകൾ ഡെമോ ഡാറ്റയാണ്, തത്സമയ മണ്ടി വിലയല്ല. വിൽക്കുന്നതിന് മുമ്പ് മണ്ടിയിലോ വ്യാപാരിയിലോ അന്തിമ വില ഉറപ്പാക്കുക.",
+  minPrice:"കുറഞ്ഞത്", maxPrice:"കൂടിയത്", modalPrice:"സാധാരണ", unit:"യൂണിറ്റ്", updated:"പുതുക്കിയത്",
+  farmingTipsTitle:"കൃഷി നുറുങ്ങുകൾ", govResourcesTitle:"സർക്കാർ കാർഷിക വിഭവങ്ങൾ", weatherTitle:"കാലാവസ്ഥ",
+  dashboardTitle:"എന്റെ ഡാഷ്ബോർഡ്", back:"തിരികെ", close:"അടയ്ക്കുക", all:"എല്ലാം", state:"സംസ്ഥാനം", district:"ജില്ല"};
+var MR = {appName:"किसान मंडी", home:"होम", search:"शोधा", prices:"भाव", nearby:"जवळपास", more:"अधिक",
+  language:"भाषा", location:"ठिकाण", selectLanguage:"भाषा निवडा", searchPlaceholder:"पीक शोधा (उदा. तांदूळ, टोमॅटो)",
+  cardCheckPrice:"मंडी भाव पहा", cardIdentify:"फोटोवरून पीक ओळखा", cardSearch:"पीक शोधा", cardNearby:"जवळची मंडी शोधा",
+  cardCompare:"मंडी भावांची तुलना करा", cardDisease:"पीक रोग सहाय्यक", cardTips:"शेतीच्या टिप्स", cardVoice:"आवाज सहाय्यक",
+  cardGov:"सरकारी संसाधने", demoData:"डेमो डेटा", priceDisclaimer:"दाखवलेले भाव डेमो डेटा आहेत, थेट मंडी भाव नाहीत. विकण्यापूर्वी मंडी किंवा व्यापाऱ्याकडून अंतिम भावाची खात्री करा.",
+  minPrice:"किमान", maxPrice:"कमाल", modalPrice:"सर्वसाधारण", unit:"एकक", updated:"अद्यतनित",
+  farmingTipsTitle:"शेतीच्या टिप्स", govResourcesTitle:"सरकारी कृषी संसाधने", weatherTitle:"हवामान",
+  dashboardTitle:"माझा डॅशबोर्ड", back:"मागे", close:"बंद करा", all:"सर्व", state:"राज्य", district:"जिल्हा"};
+var GU = {appName:"કિસાન મંડી", home:"હોમ", search:"શોધો", prices:"ભાવ", nearby:"નજીકના", more:"વધુ",
+  language:"ભાષા", location:"સ્થળ", selectLanguage:"ભાષા પસંદ કરો", searchPlaceholder:"પાક શોધો (દા.ત. ચોખા, ટામેટા)",
+  cardCheckPrice:"મંડી ભાવ જુઓ", cardIdentify:"ફોટા પરથી પાક ઓળખો", cardSearch:"પાક શોધો", cardNearby:"નજીકની મંડી શોધો",
+  cardCompare:"મંડી ભાવોની સરખામણી કરો", cardDisease:"પાક રોગ સહાયક", cardTips:"ખેતીની ટિપ્સ", cardVoice:"વૉઇસ સહાયક",
+  cardGov:"સરકારી સંસાધનો", demoData:"ડેમો ડેટા", priceDisclaimer:"બતાવેલ ભાવ ડેમો ડેટા છે, જીવંત મંડી ભાવ નથી. વેચતા પહેલાં મંડી અથવા વેપારી સાથે અંતિમ ભાવની ખાતરી કરો.",
+  minPrice:"ન્યૂનતમ", maxPrice:"મહત્તમ", modalPrice:"સામાન્ય", unit:"એકમ", updated:"અપડેટ કર્યું",
+  farmingTipsTitle:"ખેતીની ટિપ્સ", govResourcesTitle:"સરકારી કૃષિ સંસાધનો", weatherTitle:"હવામાન",
+  dashboardTitle:"મારું ડેશબોર્ડ", back:"પાછળ", close:"બંધ કરો", all:"બધા", state:"રાજ્ય", district:"જિલ્લો"};
+var PA = {appName:"ਕਿਸਾਨ ਮੰਡੀ", home:"ਹੋਮ", search:"ਖੋਜੋ", prices:"ਭਾਅ", nearby:"ਨੇੜਲੇ", more:"ਹੋਰ",
+  language:"ਭਾਸ਼ਾ", location:"ਟਿਕਾਣਾ", selectLanguage:"ਭਾਸ਼ਾ ਚੁਣੋ", searchPlaceholder:"ਫ਼ਸਲ ਖੋਜੋ (ਜਿਵੇਂ ਝੋਨਾ, ਟਮਾਟਰ)",
+  cardCheckPrice:"ਮੰਡੀ ਭਾਅ ਵੇਖੋ", cardIdentify:"ਫੋਟੋ ਤੋਂ ਫ਼ਸਲ ਪਛਾਣੋ", cardSearch:"ਫ਼ਸਲ ਖੋਜੋ", cardNearby:"ਨੇੜਲੀ ਮੰਡੀ ਲੱਭੋ",
+  cardCompare:"ਮੰਡੀ ਭਾਅ ਦੀ ਤੁਲਨਾ ਕਰੋ", cardDisease:"ਫ਼ਸਲ ਰੋਗ ਸਹਾਇਕ", cardTips:"ਖੇਤੀ ਸੁਝਾਅ", cardVoice:"ਆਵਾਜ਼ ਸਹਾਇਕ",
+  cardGov:"ਸਰਕਾਰੀ ਸਰੋਤ", demoData:"ਡੈਮੋ ਡੇਟਾ", priceDisclaimer:"ਦਿਖਾਏ ਗਏ ਭਾਅ ਡੈਮੋ ਡੇਟਾ ਹਨ, ਲਾਈਵ ਮੰਡੀ ਭਾਅ ਨਹੀਂ। ਵੇਚਣ ਤੋਂ ਪਹਿਲਾਂ ਮੰਡੀ ਜਾਂ ਵਪਾਰੀ ਨਾਲ ਅੰਤਿਮ ਭਾਅ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ।",
+  minPrice:"ਘੱਟੋ-ਘੱਟ", maxPrice:"ਵੱਧ ਤੋਂ ਵੱਧ", modalPrice:"ਆਮ", unit:"ਇਕਾਈ", updated:"ਅੱਪਡੇਟ ਕੀਤਾ",
+  farmingTipsTitle:"ਖੇਤੀ ਸੁਝਾਅ", govResourcesTitle:"ਸਰਕਾਰੀ ਖੇਤੀ ਸਰੋਤ", weatherTitle:"ਮੌਸਮ",
+  dashboardTitle:"ਮੇਰਾ ਡੈਸ਼ਬੋਰਡ", back:"ਪਿੱਛੇ", close:"ਬੰਦ ਕਰੋ", all:"ਸਾਰੇ", state:"ਰਾਜ", district:"ਜ਼ਿਲ੍ਹਾ"};
+var OR = {appName:"କିଷାନ ମଣ୍ଡି", home:"ହୋମ", search:"ଖୋଜନ୍ତୁ", prices:"ଦର", nearby:"ନିକଟସ୍ଥ", more:"ଅଧିକ",
+  language:"ଭାଷା", location:"ସ୍ଥାନ", selectLanguage:"ଭାଷା ବାଛନ୍ତୁ", searchPlaceholder:"ଫସଲ ଖୋଜନ୍ତୁ (ଯଥା ଧାନ, ଟମାଟୋ)",
+  cardCheckPrice:"ମଣ୍ଡି ଦର ଦେଖନ୍ତୁ", cardIdentify:"ଫଟୋରୁ ଫସଲ ଚିହ୍ନନ୍ତୁ", cardSearch:"ଫସଲ ଖୋଜନ୍ତୁ", cardNearby:"ନିକଟସ୍ଥ ମଣ୍ଡି ଖୋଜନ୍ତୁ",
+  cardCompare:"ମଣ୍ଡି ଦର ତୁଳନା କରନ୍ତୁ", cardDisease:"ଫସଲ ରୋଗ ସହାୟକ", cardTips:"କୃଷି ଟିପ୍ସ", cardVoice:"ଭଏସ୍ ସହାୟକ",
+  cardGov:"ସରକାରୀ ଉତ୍ସ", demoData:"ଡେମୋ ଡାଟା", priceDisclaimer:"ଦେଖାଯାଇଥିବା ଦର ଡେମୋ ଡାଟା, ଲାଇଭ ମଣ୍ଡି ଦର ନୁହେଁ। ବିକ୍ରି କରିବା ପୂର୍ବରୁ ମଣ୍ଡି କିମ୍ବା ବେପାରୀଙ୍କ ସହିତ ଅନ୍ତିମ ଦର ନିଶ୍ଚିତ କରନ୍ତୁ।",
+  minPrice:"ସର୍ବନିମ୍ନ", maxPrice:"ସର୍ବାଧିକ", modalPrice:"ସାଧାରଣ", unit:"ଏକକ", updated:"ଅପଡେଟ୍",
+  farmingTipsTitle:"କୃଷି ଟିପ୍ସ", govResourcesTitle:"ସରକାରୀ କୃଷି ଉତ୍ସ", weatherTitle:"ପାଗ",
+  dashboardTitle:"ମୋର ଡ୍ୟାସବୋର୍ଡ", back:"ପଛକୁ", close:"ବନ୍ଦ କରନ୍ତୁ", all:"ସମସ୍ତ", state:"ରାଜ୍ୟ", district:"ଜିଲ୍ଲା"};
+var AS = {appName:"কিষাণ মণ্ডি", home:"হ’ম", search:"বিচাৰক", prices:"দাম", nearby:"ওচৰৰ", more:"অধিক",
+  language:"ভাষা", location:"স্থান", selectLanguage:"ভাষা বাছক", searchPlaceholder:"শস্য বিচাৰক (যেনে ধান, বিলাহী)",
+  cardCheckPrice:"মণ্ডি দাম চাওক", cardIdentify:"ফটোৰ পৰা শস্য চিনাক্ত কৰক", cardSearch:"শস্য বিচাৰক", cardNearby:"ওচৰৰ মণ্ডি বিচাৰক",
+  cardCompare:"মণ্ডি দাম তুলনা কৰক", cardDisease:"শস্যৰোগ সহায়ক", cardTips:"খেতিৰ পৰামৰ্শ", cardVoice:"ভইচ সহায়ক",
+  cardGov:"চৰকাৰী সম্পদ", demoData:"ডেম’ ডাটা", priceDisclaimer:"দেখুওৱা দাম ডেম’ ডাটা, প্ৰত্যক্ষ মণ্ডি দাম নহয়। বিক্ৰী কৰাৰ আগতে মণ্ডি বা ব্যৱসায়ীৰ সৈতে অন্তিম দাম নিশ্চিত কৰক।",
+  minPrice:"নূন্যতম", maxPrice:"সৰ্বোচ্চ", modalPrice:"সাধাৰণ", unit:"একক", updated:"আপডেট কৰা হৈছে",
+  farmingTipsTitle:"খেতিৰ পৰামৰ্শ", govResourcesTitle:"চৰকাৰী কৃষি সম্পদ", weatherTitle:"বতৰ",
+  dashboardTitle:"মোৰ ডেশ্ববৰ্ড", back:"পিছলৈ", close:"বন্ধ কৰক", all:"সকলো", state:"ৰাজ্য", district:"জিলা"};
+var UR = {appName:"کسان منڈی", home:"ہوم", search:"تلاش کریں", prices:"قیمتیں", nearby:"قریبی", more:"مزید",
+  language:"زبان", location:"مقام", selectLanguage:"زبان منتخب کریں", searchPlaceholder:"فصل تلاش کریں (مثلاً چاول، ٹماٹر)",
+  cardCheckPrice:"منڈی قیمت دیکھیں", cardIdentify:"تصویر سے فصل شناخت کریں", cardSearch:"فصل تلاش کریں", cardNearby:"قریبی منڈی تلاش کریں",
+  cardCompare:"منڈی قیمتوں کا موازنہ کریں", cardDisease:"فصل بیماری مددگار", cardTips:"کاشتکاری کے مشورے", cardVoice:"صوتی مددگار",
+  cardGov:"سرکاری وسائل", demoData:"ڈیمو ڈیٹا", priceDisclaimer:"دکھائی گئی قیمتیں ڈیمو ڈیٹا ہیں، براہ راست منڈی قیمتیں نہیں۔ فروخت سے پہلے منڈی یا تاجر سے حتمی قیمت کی تصدیق کریں۔",
+  minPrice:"کم از کم", maxPrice:"زیادہ سے زیادہ", modalPrice:"عام", unit:"یونٹ", updated:"تازہ کاری",
+  farmingTipsTitle:"کاشتکاری کے مشورے", govResourcesTitle:"سرکاری زرعی وسائل", weatherTitle:"موسم",
+  dashboardTitle:"میرا ڈیش بورڈ", back:"واپس", close:"بند کریں", all:"تمام", state:"ریاست", district:"ضلع"};
+
+var I18N = {en:EN, hi:HI, bn:BN, te:TE, ta:TA, kn:KN, ml:ML, mr:MR, gu:GU, pa:PA, or:OR, as:AS, ur:UR};
+var LANG_META = [
+  {code:'en', name:'English', native:'English'},
+  {code:'hi', name:'Hindi', native:'हिन्दी'},
+  {code:'bn', name:'Bengali', native:'বাংলা'},
+  {code:'te', name:'Telugu', native:'తెలుగు'},
+  {code:'ta', name:'Tamil', native:'தமிழ்'},
+  {code:'kn', name:'Kannada', native:'ಕನ್ನಡ'},
+  {code:'ml', name:'Malayalam', native:'മലയാളം'},
+  {code:'mr', name:'Marathi', native:'मराठी'},
+  {code:'gu', name:'Gujarati', native:'ગુજરાતી'},
+  {code:'pa', name:'Punjabi', native:'ਪੰਜਾਬੀ'},
+  {code:'or', name:'Odia', native:'ଓଡ଼ିଆ'},
+  {code:'as', name:'Assamese', native:'অসমীয়া'},
+  {code:'ur', name:'Urdu', native:'اردو'}
+];
+
+function t(key){
+  var l = I18N[state.lang];
+  if(l && l[key]!==undefined) return l[key];
+  return EN[key]!==undefined ? EN[key] : key;
+}
+
+/* ============== DEMO DATA ============== */
+var CROPS = [
+  {id:'rice', ico:'🌾', en:'Rice', local:{hi:'चावल / धान', bn:'ধান', te:'వరి', ta:'நெல்', kn:'ಭತ್ತ', ml:'നെല്ല്', mr:'तांदूळ', gu:'ચોખા', pa:'ਝੋਨਾ', or:'ଧାନ', as:'ধান', ur:'چاول'}, cat:'Cereal'},
+  {id:'wheat', ico:'🌿', en:'Wheat', local:{hi:'गेहूं', bn:'গম', te:'గోధుమ', ta:'கோதுமை', kn:'ಗೋಧಿ', ml:'ഗോതമ്പ്', mr:'गहू', gu:'ઘઉં', pa:'ਕਣਕ', or:'ଗହମ', as:'গম', ur:'گندم'}, cat:'Cereal'},
+  {id:'tomato', ico:'🍅', en:'Tomato', local:{hi:'टमाटर', bn:'টমেটো', te:'టమాటా', ta:'தக்காளி', kn:'ಟೊಮೆಟೊ', ml:'തക്കാളി', mr:'टोमॅटो', gu:'ટામેટા', pa:'ਟਮਾਟਰ', or:'ଟମାଟୋ', as:'বিলাহী', ur:'ٹماٹر'}, cat:'Vegetable'},
+  {id:'potato', ico:'🥔', en:'Potato', local:{hi:'आलू', bn:'আলু', te:'బంగాళదుంప', ta:'உருளைக்கிழங்கு', kn:'ಆಲೂಗಡ್ಡೆ', ml:'ഉരുളക്കിഴങ്ങ്', mr:'बटाटा', gu:'બટાકા', pa:'ਆਲੂ', or:'ଆଳୁ', as:'আলু', ur:'آلو'}, cat:'Vegetable'},
+  {id:'onion', ico:'🧅', en:'Onion', local:{hi:'प्याज़', bn:'পেঁয়াজ', te:'ఉల్లిపాయ', ta:'வெங்காயம்', kn:'ಈರುಳ್ಳಿ', ml:'ഉള്ളി', mr:'कांदा', gu:'ડુંગળી', pa:'ਪਿਆਜ਼', or:'ପିଆଜ', as:'পিয়াঁজ', ur:'پیاز'}, cat:'Vegetable'},
+  {id:'maize', ico:'🌽', en:'Maize', local:{hi:'मक्का', bn:'ভুট্টা', te:'మొక్కజొన్న', ta:'சோளம்', kn:'ಜೋಳ', ml:'ചോളം', mr:'मका', gu:'મકાઈ', pa:'ਮੱਕੀ', or:'ମକା', as:'মকৈ', ur:'مکئی'}, cat:'Cereal'},
+  {id:'cotton', ico:'☁️', en:'Cotton', local:{hi:'कपास', bn:'তুলা', te:'పత్తి', ta:'பருத்தி', kn:'ಹತ್ತಿ', ml:'പരുത്തി', mr:'कापूस', gu:'કપાસ', pa:'ਕਪਾਹ', or:'କପା', as:'কপাহ', ur:'کپاس'}, cat:'Cash crop'},
+  {id:'groundnut', ico:'🥜', en:'Groundnut', local:{hi:'मूंगफली', bn:'চীনাবাদাম', te:'వేరుశనగ', ta:'நிலக்கடலை', kn:'ಕಡಲೆಕಾಯಿ', ml:'നിലക്കടല', mr:'भुईमूग', gu:'મગફળી', pa:'ਮੂੰਗਫਲੀ', or:'ବାଦାମ', as:'বাদাম', ur:'مونگ پھلی'}, cat:'Oilseed'},
+  {id:'turmeric', ico:'🟡', en:'Turmeric', local:{hi:'हल्दी', bn:'হলুদ', te:'పసుపు', ta:'மஞ்சள்', kn:'ಅರಿಶಿನ', ml:'മഞ്ഞൾ', mr:'हळद', gu:'હળદર', pa:'ਹਲਦੀ', or:'ହଳଦୀ', as:'হালধী', ur:'ہلدی'}, cat:'Spice'},
+  {id:'chilli', ico:'🌶️', en:'Chilli', local:{hi:'मिर्च', bn:'লঙ্কা', te:'మిరపకాయ', ta:'மிளகாய்', kn:'ಮೆಣಸಿನಕಾಯಿ', ml:'മുളക്', mr:'मिरची', gu:'મરચું', pa:'ਮਿਰਚ', or:'ମରିଚ', as:'জলকীয়া', ur:'مرچ'}, cat:'Spice'}
+];
+
+function cropLocalName(crop){
+  if(state.lang==='en') return crop.en;
+  return (crop.local[state.lang]) || crop.en;
+}
+
+// Demo mandi records. Every price here is clearly labelled DEMO DATA in the UI —
+// none of this is fetched from a live source (this environment has no network
+// access to government market-price APIs), and it must never be shown as current.
+var MANDIS = [
+  {name:'Azadpur Mandi', state:'Delhi', district:'North Delhi', lat:28.707, lng:77.180},
+  {name:'Vashi APMC', state:'Maharashtra', district:'Thane', lat:19.077, lng:73.000},
+  {name:'Koyambedu Market', state:'Tamil Nadu', district:'Chennai', lat:13.070, lng:80.198},
+  {name:'Yeshwantpur APMC', state:'Karnataka', district:'Bengaluru Urban', lat:13.028, lng:77.554},
+  {name:'Gultekdi Market Yard', state:'Maharashtra', district:'Pune', lat:18.499, lng:73.857},
+  {name:'Ludhiana Grain Market', state:'Punjab', district:'Ludhiana', lat:30.901, lng:75.857},
+  {name:'Rajkot APMC', state:'Gujarat', district:'Rajkot', lat:22.303, lng:70.802},
+  {name:'Guntur Market Yard', state:'Andhra Pradesh', district:'Guntur', lat:16.301, lng:80.437}
+];
+
+function seededRand(seed){ var x = Math.sin(seed)*10000; return x-Math.floor(x); }
+var UNIT_BY_CROP = {rice:'quintal', wheat:'quintal', tomato:'quintal', potato:'quintal', onion:'quintal', maize:'quintal', cotton:'quintal', groundnut:'quintal', turmeric:'quintal', chilli:'quintal'};
+var BASE_PRICE = {rice:2100, wheat:2350, tomato:1400, potato:1200, onion:1600, maize:2000, cotton:6800, groundnut:5900, turmeric:14500, chilli:16000};
+
+var PRICES = [];
+(function buildPrices(){
+  var seed = 1;
+  CROPS.forEach(function(crop){
+    MANDIS.forEach(function(m, mi){
+      seed++;
+      var base = BASE_PRICE[crop.id] || 2000;
+      var spread = 0.18 + seededRand(seed*7.3)*0.12;
+      var mid = Math.round(base * (0.85 + seededRand(seed*3.1)*0.3));
+      var min = Math.round(mid * (1-spread));
+      var max = Math.round(mid * (1+spread));
+      var daysAgo = Math.floor(seededRand(seed*5.5)*3);
+      PRICES.push({
+        crop:crop.id, mandi:m.name, state:m.state, district:m.district, lat:m.lat, lng:m.lng,
+        min:min, max:max, modal:mid, unit:'quintal', daysAgo:daysAgo, source:'Demo dataset (not live)'
+      });
+    });
+  });
+})();
+
+function priceDate(daysAgo){
+  var d = new Date(); d.setDate(d.getDate()-daysAgo);
+  return d.toLocaleDateString(undefined,{day:'2-digit', month:'short'}) + (daysAgo===0? ' · '+t('today') : '');
+}
+
+var TIPS = {
+  rice:['Keep 2–5 cm standing water during the main growth stage; drain the field about 10 days before harvest.','Use certified seed and treat seed before sowing to reduce early disease risk.','Apply nitrogen in split doses rather than all at once for better grain fill.'],
+  wheat:['Sow at the right depth (about 5 cm) for even germination.','Irrigate at the crown-root initiation stage — this is the most critical watering.','Watch for yellow rust in cool, humid weather and scout fields weekly.'],
+  tomato:['Stake or trellis plants to keep fruit off the soil and reduce rot.','Avoid overhead watering late in the day; water at the base in the morning.','Rotate with a non-nightshade crop to reduce soil-borne disease build-up.'],
+  potato:['Plant certified, disease-free seed tubers.','Earth up (mound soil around the base) to protect developing tubers from sunlight.','Stop irrigation 1–2 weeks before harvest to help the skin set.'],
+  onion:['Cure harvested bulbs in a shaded, well-ventilated place for a week before storage.','Avoid excess nitrogen late in the season — it delays bulb maturity.','Space bulbs well to improve air flow and reduce fungal disease.'],
+  maize:['Sow when soil temperature is warm enough for quick germination.','Side-dress with nitrogen when plants are about knee-high.','Scout regularly for stem borer, especially in the whorl stage.'],
+  cotton:['Monitor for pink bollworm from flowering onward using pheromone traps.','Avoid excess nitrogen, which encourages vegetative growth over boll formation.','Pick cotton in dry conditions and store it clean and dry to protect quality.'],
+  groundnut:['Ensure good calcium (gypsum) availability at the pegging stage for good pod fill.','Keep the field weed-free in the first 30–45 days for best yield.','Harvest when most leaves have yellowed and pods show a dark inner shell.'],
+  turmeric:['Plant healthy, disease-free rhizomes in well-drained soil.','Mulch well to conserve moisture and suppress weeds.','Boil, dry and polish rhizomes properly after harvest for better market value.'],
+  chilli:['Raise healthy nursery seedlings before transplanting for stronger stands.','Avoid water-logging — chilli is very sensitive to standing water.','Pick mature fruit regularly to encourage continued flowering.']
+};
+
+var GOV_RESOURCES = [
+  {name:'Agmarknet', desc:'Ministry of Agriculture market-price and mandi information portal.', url:'https://agmarknet.gov.in'},
+  {name:'eNAM — National Agriculture Market', desc:'Pan-India electronic trading platform connecting APMC mandis.', url:'https://enam.gov.in'},
+  {name:'PM-KISAN', desc:'Income support scheme for farmer families — registration and status check.', url:'https://pmkisan.gov.in'},
+  {name:'mKisan Portal', desc:'SMS and advisory services for farmers from the Government of India.', url:'https://mkisan.gov.in'},
+  {name:'Soil Health Card', desc:'Check and apply for your farm\u2019s Soil Health Card.', url:'https://soilhealth.dac.gov.in'},
+  {name:'India Meteorological Department', desc:'Official weather forecasts and agromet advisories.', url:'https://mausam.imd.gov.in'}
+];
+
+/* ============== STATE ============== */
+var state = {
+  lang: 'en', theme:null,
+  locState:'', locDistrict:'', locBlock:'', coords:null,
+  screen:'home', screenParams:{},
+  favorites:[], recent:[], savedCompare:[],
+  compareSelection:[]
+};
+function loadLocal(){
+  try{
+    var raw = localStorage.getItem('kmch_state_v1');
+    if(raw){
+      var d = JSON.parse(raw);
+      ['lang','locState','locDistrict','locBlock','favorites','recent','savedCompare'].forEach(function(k){
+        if(d[k]!==undefined) state[k]=d[k];
+      });
+    }
+  }catch(e){}
+}
+function saveLocal(){
+  try{
+    localStorage.setItem('kmch_state_v1', JSON.stringify({
+      lang:state.lang, locState:state.locState, locDistrict:state.locDistrict, locBlock:state.locBlock,
+      favorites:state.favorites, recent:state.recent, savedCompare:state.savedCompare
+    }));
+  }catch(e){}
+}
+loadLocal();
+
+function go(screen, params){
+  state.screen = screen; state.screenParams = params||{};
+  window.scrollTo(0,0);
+  render();
+}
+function addRecent(cropId){
+  state.recent = [cropId].concat(state.recent.filter(function(c){return c!==cropId;})).slice(0,8);
+  saveLocal();
+}
+function toggleFav(cropId){
+  var i = state.favorites.indexOf(cropId);
+  if(i>=0) state.favorites.splice(i,1); else state.favorites.unshift(cropId);
+  saveLocal(); render();
+}
+
+/* ============== SAMPLE (AI) CAPABILITY ============== */
+var sampleFn = null, sampleLimits = null;
+async function initSample(){
+  try{
+    sampleFn = await claude.use('sample');
+    if(sampleFn){ sampleLimits = await sampleFn.limits().catch(function(){return null;}); }
+  }catch(e){ sampleFn = null; }
+}
+
+/* ============== GEO / DISTANCE ============== */
+function haversine(lat1,lon1,lat2,lon2){
+  var R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+/* ============== SPEECH ============== */
+var recognition = null, recognizing = false;
+function speechSupported(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function startListening(onResult, onEnd){
+  var Ctor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!Ctor) return false;
+  try{
+    recognition = new Ctor();
+    recognition.lang = speechLangTag(state.lang);
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognizing = true;
+    recognition.onresult = function(ev){
+      var text = ev.results[0][0].transcript;
+      onResult(text);
+    };
+    recognition.onerror = function(){ recognizing=false; if(onEnd) onEnd(); };
+    recognition.onend = function(){ recognizing=false; if(onEnd) onEnd(); };
+    recognition.start();
+    return true;
+  }catch(e){ return false; }
+}
+function stopListening(){ try{ if(recognition) recognition.stop(); }catch(e){} recognizing=false; }
+function speechLangTag(l){
+  var map={en:'en-IN', hi:'hi-IN', bn:'bn-IN', te:'te-IN', ta:'ta-IN', kn:'kn-IN', ml:'ml-IN', mr:'mr-IN', gu:'gu-IN', pa:'pa-IN', or:'or-IN', as:'as-IN', ur:'ur-IN'};
+  return map[l]||'en-IN';
+}
+function speak(text){
+  try{
+    if(!window.speechSynthesis) return;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = speechLangTag(state.lang);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ============== RENDER HELPERS ============== */
+function el(html){ var d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+function topbarHTML(){
+  var locLabel = state.locDistrict ? (state.locDistrict+', '+state.locState) : (state.locState || t('selectLocation'));
+  return '' +
+  '<div class="topbar">' +
+    '<div class="topbar-row1">' +
+      '<div class="brand"><span class="brand-emoji">🌾</span><div><div class="brand-text">'+esc(t('appName'))+'</div><div class="brand-sub">'+esc(t('tagline'))+'</div></div></div>' +
+      '<button class="pillbtn" id="btnLang">🌐 '+esc((LANG_META.filter(function(l){return l.code===state.lang;})[0]||{}).native||'EN')+'</button>' +
+      '<button class="pillbtn" id="btnLoc">📍 '+esc(locLabel.length>14? locLabel.slice(0,13)+'…':locLabel)+'</button>' +
+    '</div>' +
+    '<div class="topbar-row2">' +
+      '<div class="searchbar"><span>🔎</span><input id="topSearch" type="text" placeholder="'+esc(t('searchPlaceholder'))+'"/>'+
+      (speechSupported()? '<button id="topMic" title="'+esc(t('speak'))+'">🎙️</button>':'')+
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+function bottomNavHTML(){
+  var items=[['home','🏠',t('home')],['search','🔎',t('search')],['prices','💰',t('prices')],['nearby','📍',t('nearby')],['dashboard','☰',t('more')]];
+  return '<div class="bottomnav">'+items.map(function(it){
+    var active = state.screen===it[0] || (it[0]==='search'&&(state.screen==='cropDetail'));
+    return '<button class="navbtn'+(active?' active':'')+'" data-nav="'+it[0]+'"><span class="ico">'+it[1]+'</span><span>'+esc(it[2])+'</span></button>';
+  }).join('')+'</div>';
+}
+function disclaimerHTML(soft){ return '<div class="disclaimer'+(soft?' soft':'')+'">'+ (soft? '⚠️ ' : '⚠️ ') + esc(t('priceDisclaimer'))+'</div>'; }
+
+/* ============== SCREENS ============== */
+function screenHome(){
+  var cats = [
+    ['prices','💰',t('cardCheckPrice'),'#E8890C'],
+    ['photoId','📷',t('cardIdentify'),'#3E6B44'],
+    ['search','🔎',t('cardSearch'),'#2C4F32'],
+    ['nearby','📍',t('cardNearby'),'#C46F02'],
+    ['compare','📊',t('cardCompare'),'#1F3D2B'],
+    ['disease','🦠',t('cardDisease'),'#B3261E'],
+    ['tips','🌱',t('cardTips'),'#2E7D32'],
+    ['voice','🎙️',t('cardVoice'),'#E8890C'],
+    ['gov','🏛️',t('cardGov'),'#4A3728']
+  ];
+  return '' +
+  '<div class="screen">' +
+    disclaimerHTML() +
+    '<div class="grid-cards">' + cats.map(function(c){
+      return '<button class="feature-card" style="--accent:'+c[3]+'" data-nav="'+c[0]+'"><span class="ico">'+c[1]+'</span><span class="lbl">'+esc(c[2])+'</span></button>';
+    }).join('') + '</div>' +
+  '</div>';
+}
+
+function screenSearch(){
+  var recentCrops = state.recent.map(function(id){return CROPS.filter(function(c){return c.id===id;})[0];}).filter(Boolean);
+  var html = '<div class="screen">' +
+    '<div class="section-title">'+esc(t('cardSearch'))+'</div>' +
+    '<div class="chip-row" id="cropChips">' + CROPS.map(function(c){
+      return '<button class="chip" data-crop="'+c.id+'">'+c.ico+' '+esc(cropLocalName(c))+'</button>';
+    }).join('') + '</div>';
+  if(recentCrops.length){
+    html += '<div class="subtle" style="margin-bottom:6px;font-weight:700;">'+esc(t('recentSearches'))+'</div>' +
+      '<div class="chip-row">' + recentCrops.map(function(c){
+        return '<button class="chip" data-crop="'+c.id+'">'+c.ico+' '+esc(cropLocalName(c))+'</button>';
+      }).join('') + '</div>';
+  }
+  html += '<div id="searchResults"></div></div>';
+  return html;
+}
+
+function matchCrop(query){
+  var q = query.trim().toLowerCase();
+  if(!q) return null;
+  return CROPS.filter(function(c){
+    if(c.en.toLowerCase().indexOf(q)>=0 || c.id.indexOf(q)>=0) return true;
+    var loc = c.local[state.lang];
+    if(loc && loc.toLowerCase().indexOf(q)>=0) return true;
+    for(var k in c.local){ if(c.local[k] && c.local[k].indexOf(query.trim())>=0) return true; }
+    return false;
+  })[0] || null;
+}
+
+function screenCropDetail(cropId){
+  var crop = CROPS.filter(function(c){return c.id===cropId;})[0];
+  if(!crop){ return '<div class="screen"><div class="emptystate"><span class="ico">🌱</span>'+esc(t('noResults'))+'</div></div>'; }
+  var rows = PRICES.filter(function(p){return p.crop===cropId;}).sort(function(a,b){return b.modal-a.modal;});
+  var isFav = state.favorites.indexOf(cropId)>=0;
+  var localNamesList = Object.keys(crop.local).map(function(k){return crop.local[k];}).slice(0,6).join(' · ');
+  var html = '<div class="screen">' +
+    '<div class="backrow"><button class="backbtn" data-nav="search">←</button><div class="section-title" style="margin:0;flex:1;">'+crop.ico+' '+esc(cropLocalName(crop))+'</div>' +
+    '<button class="favstar" data-fav="'+cropId+'">'+(isFav?'⭐':'☆')+'</button></div>' +
+    '<div class="card">' +
+      '<div class="tag">'+esc(crop.cat)+'</div>' +
+      '<div class="subtle" style="margin-top:8px;"><b>'+esc(t('localNames'))+':</b> '+esc(localNamesList)+'</div>' +
+    '</div>' +
+    disclaimerHTML() +
+    '<div class="section-title" style="font-size:15px;">'+esc(t('prices'))+'</div>';
+  if(rows.length===0){
+    html += '<div class="emptystate"><span class="ico">📭</span>'+esc(t('errorNoPrice'))+'</div>';
+  } else {
+    rows.slice(0,6).forEach(function(r){ html += priceCardHTML(r); });
+  }
+  html += '<div class="btnrow" style="margin-top:4px;">' +
+    '<button class="btn btn-primary" data-nav="whereSell" data-crop="'+cropId+'">💰 '+esc(t('whereSell'))+'</button>' +
+    '<button class="btn btn-outline" data-nav="disease" data-crop="'+cropId+'">🦠 '+esc(t('cardDisease'))+'</button>' +
+  '</div></div>';
+  return html;
+}
+
+function priceCardHTML(r){
+  return '<div class="price-card">' +
+    '<div class="price-card-top">' +
+      '<div><div class="mandi-name">'+esc(r.mandi)+'</div><div class="mandi-loc">📍 '+esc(r.district)+', '+esc(r.state)+'</div></div>' +
+      '<span class="demo-badge">'+esc(t('demoData'))+'</span>' +
+    '</div>' +
+    '<div class="price-grid">' +
+      '<div class="price-box"><div class="lbl">'+esc(t('minPrice'))+'</div><div class="val">₹'+r.min.toLocaleString('en-IN')+'</div></div>' +
+      '<div class="price-box"><div class="lbl">'+esc(t('modalPrice'))+'</div><div class="val">₹'+r.modal.toLocaleString('en-IN')+'</div></div>' +
+      '<div class="price-box"><div class="lbl">'+esc(t('maxPrice'))+'</div><div class="val">₹'+r.max.toLocaleString('en-IN')+'</div></div>' +
+    '</div>' +
+    '<div class="price-meta"><span>'+esc(t('unit'))+': '+esc(t('perQuintal'))+'</span><span>'+esc(t('updated'))+': '+priceDate(r.daysAgo)+'</span></div>' +
+  '</div>';
+}
+
+/* ---- Mandi price data service (used ONLY by the Check Mandi Price screen) ----
+   Record shape: crop_id, crop_name, state, district, mandi_name, variety,
+   min_price, max_price, modal_price, unit, date (arrival date), updated_at,
+   source, is_live.
+
+   LIVE SOURCE: Government of India / data.gov.in
+   Dataset: "Current Daily Price of Various Commodities from Various Markets (Mandi)"
+   Resource id: 9ef84268-d588-465a-a308-a864a43d0070
+   Fields in the real dataset: state, district, market, commodity, variety,
+   grade, arrival_date, min_price, max_price, modal_price.
+
+   SECURITY NOTE: a data.gov.in API key must never be embedded in this frontend
+   file. Real access requires a small backend/serverless proxy that stores the
+   key as an environment variable, calls
+     https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070
+       ?api-key=<server-side env var>&format=json&filters[commodity]=...
+   and returns plain JSON to this page. Point MANDI_LIVE_PROXY_URL at that
+   proxy to switch this screen from demo to live data. Until a real proxy is
+   configured (and actually reachable), this screen keeps the DEMO DATA
+   warning and never invents a price. */
+var MANDI_LIVE_PROXY_URL = 'https://kisan-mandi-proxy.onrender.com/api/mandi-prices';
+var GOV_SOURCE_LABEL = 'Government of India / data.gov.in';
+
+function cropIdFromCommodity(name){
+  if(!name) return null;
+  var n = String(name).trim().toLowerCase();
+  var hit = CROPS.filter(function(c){ return c.en.toLowerCase()===n || n.indexOf(c.en.toLowerCase())===0; })[0];
+  return hit ? hit.id : null;
+}
+
+var MandiPriceService = {
+  liveAdapter: null,
+  normalize: function(p){
+    var d = new Date(); d.setDate(d.getDate()-p.daysAgo); d.setHours(9,0,0,0);
+    var crop = CROPS.filter(function(c){return c.id===p.crop;})[0];
+    return {
+      crop_id:p.crop, crop_name:crop?crop.en:p.crop, state:p.state, district:p.district, mandi_name:p.mandi,
+      variety:null, min_price:p.min, max_price:p.max, modal_price:p.modal, unit:p.unit,
+      date:d.toISOString().slice(0,10), updated_at:d.toISOString(), source:p.source,
+      is_live:false, lat:p.lat, lng:p.lng
+    };
+  },
+  // Maps one raw data.gov.in record (real field names) into our normalized shape.
+  // Never invents a missing field — leaves it null instead.
+  normalizeGovRecord: function(rec){
+    var crop_id = cropIdFromCommodity(rec.commodity);
+    var mandiMeta = MANDIS.filter(function(m){return m.name===rec.market;})[0];
+    return {
+      crop_id: crop_id, crop_name: rec.commodity || null, state: rec.state || null, district: rec.district || null,
+      mandi_name: rec.market || null, variety: rec.variety || null,
+      min_price: rec.min_price!=null ? Number(rec.min_price) : null,
+      max_price: rec.max_price!=null ? Number(rec.max_price) : null,
+      modal_price: rec.modal_price!=null ? Number(rec.modal_price) : null,
+      unit:'quintal', date: rec.arrival_date || null, updated_at: new Date().toISOString(),
+      source: GOV_SOURCE_LABEL, is_live:true,
+      lat: mandiMeta? mandiMeta.lat : null, lng: mandiMeta? mandiMeta.lng : null
+    };
+  },
+  getPrices: async function(f){
+    var meta = {live:false, source:'Demo dataset (not live)', reason:'not_connected'};
+    var records = null;
+    if(MANDI_LIVE_PROXY_URL){
+      try{
+        var qs = [];
+        if(f.crop){ var c=CROPS.filter(function(x){return x.id===f.crop;})[0]; if(c) qs.push('commodity='+encodeURIComponent(c.en)); }
+        if(f.state) qs.push('state='+encodeURIComponent(f.state));
+        var res = await fetch(MANDI_LIVE_PROXY_URL + (qs.length? '?'+qs.join('&') : ''), {method:'GET'});
+        if(!res.ok) throw new Error('proxy_http_'+res.status);
+        var json = await res.json();
+        var raw = (json && json.records) ? json.records : [];
+        records = raw.map(MandiPriceService.normalizeGovRecord).filter(function(r){
+          return r.min_price!=null && r.max_price!=null && r.modal_price!=null;
+        });
+        if(records.length===0) throw new Error('proxy_empty');
+        meta = {live:true, source:GOV_SOURCE_LABEL, reason:null};
+      }catch(e){ records = null; meta.reason = 'live_failed'; }
+    }
+    if(!records){
+      await new Promise(function(r){ setTimeout(r, 300); });
+      records = PRICES.map(MandiPriceService.normalize);
+    }
+    if(f.crop) records = records.filter(function(r){return r.crop_id===f.crop;});
+    if(f.state) records = records.filter(function(r){return r.state===f.state;});
+    if(f.sort==='nearest' && state.coords){
+      records.sort(function(a,b){
+        var da = (a.lat!=null)? haversine(state.coords.lat,state.coords.lng,a.lat,a.lng) : Infinity;
+        var db = (b.lat!=null)? haversine(state.coords.lat,state.coords.lng,b.lat,b.lng) : Infinity;
+        return da-db;
+      });
+    } else {
+      records.sort(function(a,b){return (b.modal_price||0)-(a.modal_price||0);});
+    }
+    return {records:records, meta:meta};
+  }
+};
+
+function fullPriceCardHTML(r, live){
+  var upd = new Date(r.updated_at);
+  var badge = live ? '<span class="demo-badge" style="background:var(--ok-bg);color:var(--ok);">'+esc(t('statusLive'))+'</span>'
+                   : '<span class="demo-badge">'+esc(t('demoDataFull'))+'</span>';
+  var crop = CROPS.filter(function(c){return c.id===r.crop_id;})[0];
+  return '<div class="price-card">' +
+    '<div class="price-card-top">' +
+      '<div><div class="mandi-name">'+(crop?crop.ico+' ':'')+esc(r.crop_name)+' — '+esc(r.mandi_name)+'</div><div class="mandi-loc">📍 '+esc(r.district)+', '+esc(r.state)+(r.variety? ' · '+esc(r.variety):'')+'</div></div>' +
+    '</div>' +
+    '<div style="margin-top:6px;">'+badge+'</div>' +
+    '<div class="price-grid">' +
+      '<div class="price-box"><div class="lbl">'+esc(t('minPrice'))+'</div><div class="val">₹'+r.min_price.toLocaleString('en-IN')+'</div></div>' +
+      '<div class="price-box"><div class="lbl">'+esc(t('modalPrice'))+'</div><div class="val">₹'+r.modal_price.toLocaleString('en-IN')+'</div></div>' +
+      '<div class="price-box"><div class="lbl">'+esc(t('maxPrice'))+'</div><div class="val">₹'+r.max_price.toLocaleString('en-IN')+'</div></div>' +
+    '</div>' +
+    '<div class="price-meta"><span>'+esc(t('unit'))+': '+esc(t('perQuintal'))+'</span><span>'+esc(t('lastUpdated'))+': '+esc(upd.toLocaleString(undefined,{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}))+'</span></div>' +
+    '<div class="price-meta"><span>'+esc(t('dataSourceLabel'))+': '+esc(r.source)+'</span><span>'+esc(r.date)+'</span></div>' +
+  '</div>';
+}
+
+function screenPrices(){
+  var f = state.screenParams||{};
+  var crop = f.crop||''; var stateF = f.state||''; var sort = f.sort||'highest';
+  var states = Array.from(new Set(MANDIS.map(function(m){return m.state;})));
+  var html = '<div class="screen">' +
+    '<div class="section-title">'+esc(t('cardCheckPrice'))+'</div>' +
+    disclaimerHTML() +
+    '<div id="priceStatus"></div>' +
+    '<div class="filters">' +
+      '<select id="fCrop" class="field"><option value="">'+esc(t('filterCrop'))+' — '+esc(t('all'))+'</option>' + CROPS.map(function(c){return '<option value="'+c.id+'"'+(crop===c.id?' selected':'')+'>'+c.ico+' '+esc(cropLocalName(c))+'</option>';}).join('') + '</select>' +
+      '<select id="fState" class="field"><option value="">'+esc(t('filterState'))+' — '+esc(t('all'))+'</option>' + states.map(function(s){return '<option value="'+esc(s)+'"'+(stateF===s?' selected':'')+'>'+esc(s)+'</option>';}).join('') + '</select>' +
+    '</div>' +
+    '<div class="sortrow">' +
+      '<button class="sortbtn'+(sort==='highest'?' active':'')+'" data-sort="highest">⬆ '+esc(t('sortHighest'))+'</button>' +
+      '<button class="sortbtn'+(sort==='nearest'?' active':'')+'" data-sort="nearest">📍 '+esc(t('sortNearest'))+'</button>' +
+    '</div>' +
+    '<div id="priceList"><div class="emptystate"><span class="ico">⏳</span>'+esc(t('checking'))+'</div></div></div>';
+  return html;
+}
+
+var priceLoadToken = 0;
+async function loadPrices(){
+  var list = document.getElementById('priceList'), status = document.getElementById('priceStatus');
+  if(!list) return;
+  var token = ++priceLoadToken;
+  var f = state.screenParams||{};
+  list.innerHTML = '<div class="emptystate"><span class="ico">⏳</span>'+esc(t('checking'))+'</div>';
+  var notes = '';
+  if(navigator.onLine===false) notes += '<div class="disclaimer soft">📶 '+esc(t('netRequired'))+'</div>';
+  try{
+    var res = await MandiPriceService.getPrices({crop:f.crop||'', state:f.state||'', sort:f.sort||'highest'});
+    if(token!==priceLoadToken || !document.getElementById('priceList')) return;
+    if(!res.meta.live) notes += '<div class="disclaimer soft">'+esc(t('liveTempUnavailable'))+'</div>';
+    notes += '<div class="subtle" style="margin-bottom:10px;">'+esc(t('dataSourceLabel'))+': <b>'+esc(res.meta.source)+'</b> · '+(res.meta.live? esc(t('statusLive')) : esc(t('statusDemo')))+'</div>';
+    status.innerHTML = notes;
+    if(res.records.length===0){
+      list.innerHTML = '<div class="emptystate"><span class="ico">📭</span>'+esc(t('errorNoPrice'))+'</div>';
+    } else {
+      list.innerHTML = res.records.slice(0,20).map(function(r){return fullPriceCardHTML(r, res.meta.live);}).join('');
+    }
+  }catch(e){
+    if(token!==priceLoadToken) return;
+    status.innerHTML = notes;
+    list.innerHTML = '<div class="emptystate"><span class="ico">⚠️</span>'+esc(t('liveTempUnavailable'))+
+      '<div class="btnrow"><button class="btn btn-outline" id="btnRetryPrices">'+esc(t('tryAgain'))+'</button></div></div>';
+    var rb = document.getElementById('btnRetryPrices');
+    if(rb) rb.addEventListener('click', loadPrices);
+  }
+}
+
+function screenNearby(){
+  var hasLoc = !!state.coords || !!state.locDistrict;
+  var withDist = PRICES.filter(function(p){
+    if(state.locState && p.state!==state.locState) return false;
+    return true;
+  });
+  if(state.coords){
+    withDist.forEach(function(p){ p._dist = haversine(state.coords.lat,state.coords.lng,p.lat,p.lng); });
+    withDist.sort(function(a,b){ return a._dist-b._dist; });
+  }
+  var byMandi = {};
+  withDist.forEach(function(p){ if(!byMandi[p.mandi]) byMandi[p.mandi]=p; });
+  var list = Object.keys(byMandi).map(function(k){return byMandi[k];}).slice(0,8);
+
+  var html = '<div class="screen">' +
+    '<div class="section-title">'+esc(t('cardNearby'))+'</div>';
+  if(!hasLoc){
+    html += '<div class="card">' +
+      '<div class="subtle" style="margin-bottom:10px;">'+esc(t('selectManually'))+'</div>' +
+      '<button class="btn btn-primary" id="btnUseLoc" style="width:100%;margin-bottom:10px;">📍 '+esc(t('useMyLocation'))+'</button>' +
+      '<label class="flabel">'+esc(t('state'))+'</label>' +
+      '<select class="field" id="nearState">' + '<option value="">—</option>' + Array.from(new Set(MANDIS.map(function(m){return m.state;}))).map(function(s){return '<option value="'+esc(s)+'">'+esc(s)+'</option>';}).join('') + '</select>' +
+      '<div class="btnrow"><button class="btn btn-outline" id="btnSaveManualLoc" style="width:100%;">'+esc(t('save'))+' ✓</button></div>' +
+    '</div>';
+  } else {
+    html += '<div class="subtle" style="margin-bottom:10px;">📍 '+esc(state.locDistrict||'')+(state.locDistrict?', ':'')+esc(state.locState||'')+' <button class="small-link" id="btnChangeLoc" style="border:none;background:none;">('+esc(t('selectManually'))+')</button></div>';
+  }
+  html += disclaimerHTML();
+  list.forEach(function(p){
+    html += '<div class="price-card">' +
+      '<div class="price-card-top"><div><div class="mandi-name">'+esc(p.mandi)+'</div><div class="mandi-loc">📍 '+esc(p.district)+', '+esc(p.state)+(p._dist? ' · '+p._dist.toFixed(0)+' km':'')+'</div></div>' +
+      '<span class="demo-badge">'+esc(t('demoData'))+'</span></div>' +
+      '<div class="subtle" style="margin-top:8px;">'+CROPS.filter(function(c){return c.id===p.crop;})[0].ico+' '+esc(cropLocalName(CROPS.filter(function(c){return c.id===p.crop;})[0]))+' — ₹'+p.modal.toLocaleString('en-IN')+' / '+esc(t('perQuintal'))+'</div>' +
+      '<div class="btnrow"><a class="btn btn-outline" style="text-decoration:none;" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(p.mandi+' '+p.district+' '+p.state)+'">🗺️ '+esc(t('viewOnMap'))+'</a></div>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function screenCompare(){
+  var sel = state.compareSelection;
+  var html = '<div class="screen"><div class="section-title">'+esc(t('compareTitle'))+'</div>' + disclaimerHTML();
+  html += '<div class="card"><div class="subtle" style="font-weight:700;margin-bottom:6px;">'+esc(t('selectMandis'))+'</div>';
+  MANDIS.forEach(function(m){
+    var checked = sel.indexOf(m.name)>=0;
+    html += '<label class="checkitem"><input type="checkbox" data-cmpmandi="'+esc(m.name)+'" '+(checked?'checked':'')+'/> '+esc(m.name)+' <span class="subtle">('+esc(m.district)+')</span></label>';
+  });
+  html += '<label class="flabel">'+esc(t('filterCrop'))+'</label><select class="field" id="cmpCrop">' + CROPS.map(function(c){return '<option value="'+c.id+'"'+(state.screenParams.crop===c.id?' selected':'')+'>'+c.ico+' '+esc(cropLocalName(c))+'</option>';}).join('') + '</select>';
+  html += '</div>';
+
+  if(sel.length<2){
+    html += '<div class="emptystate"><span class="ico">📊</span>'+esc(t('compareEmpty'))+'</div>';
+  } else {
+    var cropId = state.screenParams.crop || CROPS[0].id;
+    var rows = PRICES.filter(function(p){return p.crop===cropId && sel.indexOf(p.mandi)>=0;});
+    html += '<div class="card" style="overflow-x:auto;"><table class="compare-table"><thead><tr>' +
+      '<th>'+esc(t('cardCheckPrice'))+'</th><th>'+esc(t('minPrice'))+'</th><th>'+esc(t('modalPrice'))+'</th><th>'+esc(t('maxPrice'))+'</th><th>'+esc(t('updated'))+'</th>' +
+      '</tr></thead><tbody>';
+    rows.forEach(function(r){
+      html += '<tr><td style="text-align:left;font-weight:700;">'+esc(r.mandi)+'</td><td>₹'+r.min+'</td><td>₹'+r.modal+'</td><td>₹'+r.max+'</td><td>'+priceDate(r.daysAgo)+'</td></tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function screenWhereSell(cropId){
+  var crop = CROPS.filter(function(c){return c.id===cropId;})[0] || CROPS[0];
+  var rows = PRICES.filter(function(p){return p.crop===crop.id;});
+  if(state.coords){ rows.forEach(function(p){p._dist=haversine(state.coords.lat,state.coords.lng,p.lat,p.lng);}); rows.sort(function(a,b){return a._dist-b._dist;}); }
+  else { rows.sort(function(a,b){return b.modal-a.modal;}); }
+  var qty = state.screenParams.qty || '';
+  var html = '<div class="screen">' +
+    '<div class="backrow"><button class="backbtn" data-nav="cropDetail" data-crop="'+crop.id+'">←</button><div class="section-title" style="margin:0;">💰 '+esc(t('whereSell'))+'</div></div>' +
+    '<div class="card">' +
+      '<div class="subtle" style="font-weight:700;">'+crop.ico+' '+esc(cropLocalName(crop))+'</div>' +
+      '<label class="flabel">'+esc(t('quantity'))+'</label>' +
+      '<input type="text" inputmode="decimal" id="qtyInput" placeholder="e.g. 10" value="'+esc(qty)+'"/>' +
+    '</div>' +
+    disclaimerHTML() +
+    '<div id="whereSellList">';
+  rows.slice(0,6).forEach(function(r){
+    var est = qty && !isNaN(parseFloat(qty)) ? Math.round(parseFloat(qty)*r.modal) : null;
+    html += '<div class="price-card">' +
+      '<div class="price-card-top"><div><div class="mandi-name">'+esc(r.mandi)+'</div><div class="mandi-loc">📍 '+esc(r.district)+', '+esc(r.state)+(r._dist?' · '+r._dist.toFixed(0)+' km':'')+'</div></div><span class="demo-badge">'+esc(t('demoData'))+'</span></div>' +
+      '<div class="subtle" style="margin-top:6px;">'+esc(t('modalPrice'))+': ₹'+r.modal.toLocaleString('en-IN')+' / '+esc(t('perQuintal'))+'</div>' +
+      (est!==null ? '<div class="ai-box" style="margin-top:8px;"><b>'+esc(t('estimatedValue'))+': ₹'+est.toLocaleString('en-IN')+'</b></div>' : '') +
+    '</div>';
+  });
+  html += '</div><div class="disclaimer soft">'+esc(t('estimatedValueNote'))+'</div></div>';
+  return html;
+}
+
+function screenDisease(){
+  var cropId = state.screenParams.crop || '';
+  var html = '<div class="screen"><div class="section-title">🦠 '+esc(t('diseaseHelperTitle'))+'</div>' +
+    '<div class="disclaimer soft">'+esc(t('expertNote'))+'</div>' +
+    '<div class="card">' +
+      '<label class="flabel">'+esc(t('selectCrop'))+'</label>' +
+      '<select class="field" id="dsCrop">' + CROPS.map(function(c){return '<option value="'+c.id+'"'+(cropId===c.id?' selected':'')+'>'+c.ico+' '+esc(cropLocalName(c))+'</option>';}).join('') + '</select>' +
+      '<label class="flabel">'+esc(t('describeSymptoms'))+'</label>' +
+      '<div style="display:flex; gap:8px; align-items:flex-start;">' +
+        '<textarea id="dsSymptoms" placeholder="'+esc(t('describeSymptoms'))+'"></textarea>' +
+        (speechSupported()? '<button class="mic-btn" id="dsMic">🎙️</button>':'') +
+      '</div>' +
+      (sampleFn ? '<button class="btn btn-primary" id="dsGetAdvice" style="width:100%;margin-top:12px;">✨ '+esc(t('getAdvice'))+'</button>' : '<div class="subtle" style="margin-top:10px;">'+esc(t('aiUnavailable'))+'</div>') +
+    '</div>' +
+    '<div id="dsAnswer"></div>' +
+    '<div class="section-title" style="font-size:15px;">'+esc(t('farmingTipsTitle'))+'</div>' +
+    '<div class="card"><ul style="margin:0;padding-left:18px;" class="subtle">' + (TIPS[cropId||'rice']||[]).map(function(x){return '<li style="margin-bottom:6px;">'+esc(x)+'</li>';}).join('') + '</ul></div>' +
+  '</div>';
+  return html;
+}
+
+function screenPhotoId(){
+  var html = '<div class="screen"><div class="section-title">📷 '+esc(t('photoIdTitle'))+'</div>' +
+    '<div class="disclaimer soft">'+esc(t('expertNote'))+'</div>';
+  if(!sampleFn || !(sampleLimits && sampleLimits.images)){
+    html += '<div class="card"><div class="emptystate"><span class="ico">📷</span>'+esc(t('aiUnavailable'))+'</div></div>';
+  } else {
+    html += '<div class="card">' +
+      '<div class="subtle" style="margin-bottom:10px;">'+esc(t('photoTip'))+'</div>' +
+      '<div id="photoPreviewWrap"></div>' +
+      '<input type="file" accept="'+(sampleLimits.images.mediaTypes||['image/*']).join(',')+'" capture="environment" id="photoInput" style="display:none;"/>' +
+      '<button class="btn btn-primary" id="btnTakePhoto" style="width:100%;">📷 '+esc(t('takePhoto'))+'</button>' +
+    '</div>' +
+    '<div id="photoAnswer"></div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+function screenTips(){
+  var html = '<div class="screen"><div class="section-title">🌱 '+esc(t('farmingTipsTitle'))+'</div>';
+  CROPS.forEach(function(c){
+    html += '<div class="card"><div class="subtle" style="font-weight:800;color:var(--ink);margin-bottom:6px;">'+c.ico+' '+esc(cropLocalName(c))+'</div>' +
+      '<ul style="margin:0;padding-left:18px;" class="subtle">' + (TIPS[c.id]||[]).map(function(x){return '<li style="margin-bottom:5px;">'+esc(x)+'</li>';}).join('') + '</ul></div>';
+  });
+  html += '</div>';
+  return html;
+}
+
+function screenGov(){
+  var html = '<div class="screen"><div class="section-title">🏛️ '+esc(t('govResourcesTitle'))+'</div>' +
+    '<div class="disclaimer soft">'+esc(t('resourcesNote'))+'</div>';
+  GOV_RESOURCES.forEach(function(r){
+    html += '<div class="res-item"><a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.name)+' ↗</a><p>'+esc(r.desc)+'</p></div>';
+  });
+  html += '<div class="section-title" style="font-size:15px;margin-top:6px;">🌦️ '+esc(t('weatherTitle'))+'</div>' +
+    '<div class="card"><div class="emptystate" style="padding:18px;"><span class="ico">🌦️</span>'+esc(t('weatherUnavailable'))+'<div class="subtle" style="margin-top:6px;">'+esc(t('weatherNote'))+'</div></div></div>' +
+  '</div>';
+  return html;
+}
+
+function screenDashboard(){
+  var favCrops = state.favorites.map(function(id){return CROPS.filter(function(c){return c.id===id;})[0];}).filter(Boolean);
+  var recentCrops = state.recent.map(function(id){return CROPS.filter(function(c){return c.id===id;})[0];}).filter(Boolean);
+  var html = '<div class="screen"><div class="section-title">☰ '+esc(t('dashboardTitle'))+'</div>' +
+    '<div class="subtle" style="margin-bottom:12px;">'+esc(t('noAccountNeeded'))+'</div>' +
+    '<div class="card"><div style="font-weight:800;margin-bottom:8px;">⭐ '+esc(t('favorites'))+'</div>';
+  if(favCrops.length===0){ html += '<div class="subtle">'+esc(t('noFavorites'))+'</div>'; }
+  else { html += '<div class="chip-row">' + favCrops.map(function(c){ return '<button class="chip" data-crop="'+c.id+'">'+c.ico+' '+esc(cropLocalName(c))+'</button>'; }).join('') + '</div>'; }
+  html += '</div>' +
+    '<div class="card"><div style="font-weight:800;margin-bottom:8px;">🕘 '+esc(t('recentSearches'))+'</div>';
+  if(recentCrops.length===0){ html += '<div class="subtle">'+esc(t('noRecent'))+'</div>'; }
+  else { html += '<div class="chip-row">' + recentCrops.map(function(c){ return '<button class="chip" data-crop="'+c.id+'">'+c.ico+' '+esc(cropLocalName(c))+'</button>'; }).join('') + '</div>'; }
+  html += '</div>' +
+    '<div class="grid-cards" style="margin-top:4px;">' +
+      '<button class="feature-card" style="--accent:#4A3728" data-nav="gov"><span class="ico">🏛️</span><span class="lbl">'+esc(t('cardGov'))+'</span></button>' +
+      '<button class="feature-card" style="--accent:#2E7D32" data-nav="tips"><span class="ico">🌱</span><span class="lbl">'+esc(t('cardTips'))+'</span></button>' +
+    '</div>' +
+  '</div>';
+  return html;
+}
+
+/* ============== RENDER DISPATCH ============== */
+function render(){
+  var app = document.getElementById('app');
+  var body;
+  switch(state.screen){
+    case 'home': body = screenHome(); break;
+    case 'search': body = screenSearch(); break;
+    case 'cropDetail': body = screenCropDetail(state.screenParams.crop); break;
+    case 'prices': body = screenPrices(); break;
+    case 'nearby': body = screenNearby(); break;
+    case 'compare': body = screenCompare(); break;
+    case 'whereSell': body = screenWhereSell(state.screenParams.crop); break;
+    case 'disease': body = screenDisease(); break;
+    case 'photoId': body = screenPhotoId(); break;
+    case 'tips': body = screenTips(); break;
+    case 'gov': body = screenGov(); break;
+    case 'dashboard': body = screenDashboard(); break;
+    default: body = screenHome();
+  }
+  app.innerHTML = topbarHTML() + body + bottomNavHTML() +
+    (speechSupported() && state.screen!=='disease' ? '<button class="fab-mic" id="voiceFab" title="'+esc(t('voiceAssistant'))+'">🎙️</button>' : '');
+  document.documentElement.setAttribute('dir', state.lang==='ur' ? 'rtl' : 'ltr');
+  wireEvents();
+}
+
+/* ============== EVENTS ============== */
+function wireEvents(){
+  var app = document.getElementById('app');
+  app.querySelectorAll('[data-nav]').forEach(function(node){
+    node.addEventListener('click', function(){
+      var target = node.getAttribute('data-nav');
+      var cropAttr = node.getAttribute('data-crop');
+      if(cropAttr){ addRecent(cropAttr); go(target==='search'?'cropDetail':target, {crop:cropAttr}); }
+      else go(target, {});
+    });
+  });
+  var langBtn = document.getElementById('btnLang');
+  if(langBtn) langBtn.addEventListener('click', openLangModal);
+  var locBtn = document.getElementById('btnLoc');
+  if(locBtn) locBtn.addEventListener('click', function(){ go('nearby',{}); });
+
+  var topSearch = document.getElementById('topSearch');
+  if(topSearch){
+    topSearch.addEventListener('keydown', function(e){
+      if(e.key==='Enter'){ runTopSearch(topSearch.value); }
+    });
+  }
+  var topMic = document.getElementById('topMic');
+  if(topMic){
+    topMic.addEventListener('click', function(){
+      topMic.classList.add('listening');
+      startListening(function(text){ topSearch.value=text; runTopSearch(text); }, function(){ topMic.classList.remove('listening'); });
+    });
+  }
+  var voiceFab = document.getElementById('voiceFab');
+  if(voiceFab) voiceFab.addEventListener('click', openVoiceModal);
+
+  app.querySelectorAll('[data-crop]:not([data-nav])').forEach(function(node){
+    node.addEventListener('click', function(){
+      var id = node.getAttribute('data-crop');
+      addRecent(id);
+      go('cropDetail', {crop:id});
+    });
+  });
+  app.querySelectorAll('[data-fav]').forEach(function(node){
+    node.addEventListener('click', function(){ toggleFav(node.getAttribute('data-fav')); });
+  });
+
+  // screen-specific wiring
+  if(state.screen==='prices') wirePrices();
+  if(state.screen==='nearby') wireNearby();
+  if(state.screen==='compare') wireCompare();
+  if(state.screen==='whereSell') wireWhereSell();
+  if(state.screen==='disease') wireDisease();
+  if(state.screen==='photoId') wirePhotoId();
+}
+
+function runTopSearch(query){
+  var c = matchCrop(query);
+  if(c){ addRecent(c.id); go('cropDetail', {crop:c.id}); }
+  else { go('search', {}); var res=document.getElementById('searchResults'); if(res) res.innerHTML='<div class="emptystate"><span class="ico">🔎</span>'+esc(t('noResults'))+'</div>'; }
+}
+
+function wirePrices(){
+  var app=document.getElementById('app');
+  var fCrop=document.getElementById('fCrop'), fState=document.getElementById('fState');
+  function update(){ go('prices', {crop:fCrop.value, state:fState.value, sort:state.screenParams.sort||'highest'}); }
+  if(fCrop) fCrop.addEventListener('change', update);
+  if(fState) fState.addEventListener('change', update);
+  app.querySelectorAll('[data-sort]').forEach(function(btn){
+    btn.addEventListener('click', function(){ go('prices', {crop:state.screenParams.crop, state:state.screenParams.state, sort:btn.getAttribute('data-sort')}); });
+  });
+  loadPrices();
+}
+
+function wireNearby(){
+  var btnUseLoc = document.getElementById('btnUseLoc');
+  if(btnUseLoc){
+    btnUseLoc.addEventListener('click', function(){
+      btnUseLoc.textContent = '…';
+      if(!navigator.geolocation){ alert(t('locationDenied')); render(); return; }
+      navigator.geolocation.getCurrentPosition(function(pos){
+        state.coords = {lat:pos.coords.latitude, lng:pos.coords.longitude};
+        var nearest = MANDIS.slice().sort(function(a,b){
+          return haversine(state.coords.lat,state.coords.lng,a.lat,a.lng)-haversine(state.coords.lat,state.coords.lng,b.lat,b.lng);
+        })[0];
+        state.locState = nearest.state; state.locDistrict = nearest.district;
+        saveLocal(); render();
+      }, function(){ alert(t('locationDenied')+' '+t('errorLocation')); render(); }, {timeout:8000});
+    });
+  }
+  var nearState = document.getElementById('nearState');
+  var btnSave = document.getElementById('btnSaveManualLoc');
+  if(btnSave){
+    btnSave.addEventListener('click', function(){
+      state.locState = nearState.value; state.coords=null; saveLocal(); render();
+    });
+  }
+  var btnChange = document.getElementById('btnChangeLoc');
+  if(btnChange){ btnChange.addEventListener('click', function(){ state.locState=''; state.locDistrict=''; state.coords=null; render(); }); }
+}
+
+function wireCompare(){
+  var app=document.getElementById('app');
+  app.querySelectorAll('[data-cmpmandi]').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var name = cb.getAttribute('data-cmpmandi');
+      var i = state.compareSelection.indexOf(name);
+      if(cb.checked && i<0) state.compareSelection.push(name);
+      if(!cb.checked && i>=0) state.compareSelection.splice(i,1);
+      render();
+    });
+  });
+  var cmpCrop = document.getElementById('cmpCrop');
+  if(cmpCrop) cmpCrop.addEventListener('change', function(){ go('compare', {crop:cmpCrop.value}); });
+}
+
+function wireWhereSell(){
+  var q = document.getElementById('qtyInput');
+  if(q){ q.addEventListener('input', function(){ go('whereSell', {crop:state.screenParams.crop, qty:q.value}); q.focus(); q.setSelectionRange(q.value.length,q.value.length); }); }
+}
+
+function wireDisease(){
+  var mic = document.getElementById('dsMic');
+  var ta = document.getElementById('dsSymptoms');
+  if(mic){ mic.addEventListener('click', function(){
+    mic.classList.add('listening');
+    startListening(function(text){ ta.value = (ta.value? ta.value+' ':'')+text; }, function(){ mic.classList.remove('listening'); });
+  }); }
+  var btn = document.getElementById('dsGetAdvice');
+  if(btn){
+    btn.addEventListener('click', async function(){
+      var cropSel = document.getElementById('dsCrop').value;
+      var symptoms = ta.value.trim();
+      var out = document.getElementById('dsAnswer');
+      if(!symptoms){ return; }
+      out.innerHTML = '<div class="card"><div class="ai-box thinking">'+esc(t('aiThinking'))+'</div></div>';
+      var cropObj = CROPS.filter(function(c){return c.id===cropSel;})[0];
+      var prompt = "You are a careful agricultural extension assistant helping an Indian farmer. "+
+        "Crop: "+cropObj.en+". Symptoms described by the farmer: \""+symptoms+"\". "+
+        "In under 160 words, give: 1) most likely problem(s), phrased as possibilities not certainties, "+
+        "2) 2-3 general prevention/management steps that are safe and commonly recommended, "+
+        "3) a line on when to see a local agriculture expert. "+
+        "Do NOT give specific pesticide brand names, exact chemical dosages, or mixing instructions. "+
+        "Reply in "+ (LANG_META.filter(function(l){return l.code===state.lang;})[0]||{}).name || 'English' +" language, plain text, no markdown headers.";
+      try{
+        var res = await sampleFn(prompt, {modelTier:'default', onText:function(u){ out.innerHTML = '<div class="card"><div class="ai-box">'+esc(u.text)+'</div></div>'; }});
+        out.innerHTML = '<div class="card"><div class="ai-box">'+esc(res.text)+'</div><div class="subtle" style="margin-top:8px;">'+esc(t('expertNote'))+'</div></div>';
+      }catch(e){
+        out.innerHTML = '<div class="card"><div class="ai-box">'+esc(t('aiUnavailable'))+'</div></div>';
+      }
+    });
+  }
+}
+
+function wirePhotoId(){
+  var btn = document.getElementById('btnTakePhoto');
+  var input = document.getElementById('photoInput');
+  if(btn && input){
+    btn.addEventListener('click', function(){ input.click(); });
+    input.addEventListener('change', async function(){
+      if(!input.files || !input.files[0]) return;
+      var file = input.files[0];
+      var wrap = document.getElementById('photoPreviewWrap');
+      var url = URL.createObjectURL(file);
+      wrap.innerHTML = '<img class="imgpreview" src="'+url+'"/>';
+      var out = document.getElementById('photoAnswer');
+      out.innerHTML = '<div class="card"><div class="ai-box thinking">'+esc(t('analyzing'))+'</div></div>';
+      var prompt = "Look at this photo of a crop/plant taken by an Indian farmer. "+
+        "Identify: 1) the most likely crop name, 2) any visible disease, pest damage or nutrient problem if clearly recognisable, "+
+        "3) your confidence as Low, Medium or High. If the photo is unclear or you are not confident, say so plainly instead of guessing. "+
+        "Reply in under 100 words, plain text, in this format on separate lines: 'Crop: ...', 'Issue: ...', 'Confidence: ...', 'Note: ...'. "+
+        "Reply in "+((LANG_META.filter(function(l){return l.code===state.lang;})[0]||{}).name||'English')+" language.";
+      try{
+        var res = await sampleFn(prompt, {modelTier:'default', images:[file]});
+        out.innerHTML = '<div class="card"><div class="ai-box">'+esc(res.text)+'</div><div class="subtle" style="margin-top:8px;">'+esc(t('expertNote'))+'</div></div>';
+      }catch(e){
+        var msg = (e && e.code==='image_rejected') ? t('unclearPhoto') : t('aiUnavailable');
+        out.innerHTML = '<div class="card"><div class="ai-box">'+esc(msg)+'</div></div>';
+      }
+    });
+  }
+}
+
+/* ============== MODALS ============== */
+function openModal(innerHTML, onMount){
+  var overlay = el('<div class="modal-overlay" id="modalOverlay"><div class="modal-sheet">'+innerHTML+'</div></div>');
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) closeModal(); });
+  if(onMount) onMount(overlay);
+}
+function closeModal(){ var o=document.getElementById('modalOverlay'); if(o) o.remove(); }
+
+function openLangModal(){
+  var html = '<div class="modal-title">'+esc(t('selectLanguage'))+'<button class="closex" id="mClose">✕</button></div>' +
+    '<div class="lang-grid">' + LANG_META.map(function(l){
+      return '<button class="lang-opt'+(state.lang===l.code?' active':'')+'" data-lang="'+l.code+'">'+esc(l.native)+'<small>'+esc(l.name)+'</small></button>';
+    }).join('') + '</div>';
+  openModal(html, function(overlay){
+    overlay.querySelector('#mClose').addEventListener('click', closeModal);
+    overlay.querySelectorAll('[data-lang]').forEach(function(btn){
+      btn.addEventListener('click', function(){ state.lang = btn.getAttribute('data-lang'); saveLocal(); closeModal(); render(); });
+    });
+  });
+}
+
+function openVoiceModal(){
+  var html = '<div class="modal-title">🎙️ '+esc(t('voiceAssistant'))+'<button class="closex" id="mClose">✕</button></div>' +
+    '<div class="subtle" style="margin-bottom:10px;">'+esc(t('askAnything'))+'</div>' +
+    '<div id="voiceStatus" class="subtle" style="margin-bottom:8px;"></div>' +
+    '<div style="display:flex;gap:8px;align-items:flex-start;">' +
+      '<textarea id="voiceText" placeholder="'+esc(t('typeInstead'))+'"></textarea>' +
+      (speechSupported()? '<button class="mic-btn" id="voiceMic">🎙️</button>':'') +
+    '</div>' +
+    (sampleFn? '<button class="btn btn-primary" id="voiceAsk" style="width:100%;margin-top:10px;">✨ '+esc(t('askAI'))+'</button>' : '<div class="subtle" style="margin-top:10px;">'+esc(t('aiUnavailable'))+'</div>') +
+    '<div id="voiceAnswer"></div>';
+  openModal(html, function(overlay){
+    overlay.querySelector('#mClose').addEventListener('click', closeModal);
+    var mic = overlay.querySelector('#voiceMic');
+    var ta = overlay.querySelector('#voiceText');
+    var status = overlay.querySelector('#voiceStatus');
+    if(mic){
+      mic.addEventListener('click', function(){
+        mic.classList.add('listening'); status.textContent = t('listening');
+        startListening(function(text){ ta.value = text; status.textContent=''; }, function(){ mic.classList.remove('listening'); status.textContent=''; });
+      });
+    }
+    var askBtn = overlay.querySelector('#voiceAsk');
+    if(askBtn){
+      askBtn.addEventListener('click', async function(){
+        var q = ta.value.trim(); if(!q) return;
+        var out = overlay.querySelector('#voiceAnswer');
+        out.innerHTML = '<div class="ai-box thinking" style="margin-top:10px;">'+esc(t('aiThinking'))+'</div>';
+        var prompt = "You are a helpful voice assistant inside an Indian farming app called Kisan Mandi. "+
+          "Answer the farmer's question in under 120 words, simply and practically. "+
+          "If it needs a current mandi price, tell them this demo app only has sample data and to check the Prices screen or Agmarknet for live prices — do not invent a price. "+
+          "Never give exact pesticide dosages. Reply in "+((LANG_META.filter(function(l){return l.code===state.lang;})[0]||{}).name||'English')+" language, plain text.\n\nQuestion: "+q;
+        try{
+          var res = await sampleFn(prompt, {modelTier:'default', onText:function(u){ out.innerHTML='<div class="ai-box" style="margin-top:10px;">'+esc(u.text)+'</div>'; }});
+          out.innerHTML = '<div class="ai-box" style="margin-top:10px;">'+esc(res.text)+'</div>';
+          if(window.speechSynthesis) speak(res.text);
+        }catch(e){ out.innerHTML = '<div class="ai-box" style="margin-top:10px;">'+esc(t('aiUnavailable'))+'</div>'; }
+      });
+    }
+  });
+}
+
+/* ============== INIT ============== */
+async function init(){
+  await initSample();
+  render();
+}
+init();
+
+})();
+</script>
+</body>
+</html>
